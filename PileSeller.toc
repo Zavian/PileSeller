@@ -1,0 +1,18 @@
+## Interface: 60200
+## Title : |cFF6cafccPile|rSeller
+## Version: 1.1
+## Notes: Simple seller based on sessions. /pileseller
+## Author: Zavian
+## Email: zavian.mail@gmail.com
+## DefaultState: enabled
+## SavedVariablesPerCharacter: psIgnoredZones, psItems, psItemsSaved, psItemsSavedFound, psItemsAlert, psSettings
+
+Init.lua
+PileSeller.xml
+PileSeller.lua
+Config.lua
+SellingUI.lua
+SellingBox.lua
+TutorialUI.lua
+MinimapButton.lua
+PileBase.lua
