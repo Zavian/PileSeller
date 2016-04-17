@@ -71,10 +71,10 @@ function psEvents:CHAT_MSG_LOOT(...)
 	end
 end
 
-function PileSeller:IsBoE(item)
+function PileSeller:IsBoE(id)
 	local f = CreateFrame('GameTooltip', 'PileSellerScanningTooltip', UIParent, 'GameTooltipTemplate')
 	f:SetOwner(UIParent, 'ANCHOR_NONE') 
-	f:SetItemByID(item)
+	f:SetItemByID(id)
 	for i = 1, f:NumLines() do
 		local t = _G["PileSellerScanningTooltipTextLeft" .. i]:GetText()
 		if t == ITEM_BIND_ON_EQUIP then return true end
@@ -85,12 +85,8 @@ end
 function PileSeller:IsToken(item)
 	local reqlevel, class = select(5, GetItemInfo(item)), select(6, GetItemInfo(item))
 	if class == MISCELLANEOUS then
-		--PileSeller:debugprint("i found a MISCELLANEOUS")
 	    if select(3, GetItemInfo(item)) == 4 then 
-	    	--PileSeller:debugprint("it may be a token")
 	        if PileSeller:IsWearable(item) then
-	        	--PileSeller:debugprint("i can use it " .. select(2, GetItemInfo(item)))
-	        	--PileSeller:debugprint("isTier:" ..  PileSeller:IsTier(reqlevel, item) and "true" or "false")
 	        	return PileSeller:IsTier(reqlevel, item)
 	        end      
 	    end
@@ -103,7 +99,8 @@ function PileSeller:CanTransmog(item)
 	if select(9, GetItemInfo(item)) == "INVTYPE_CLOAK" then return true end
 	local class, subclass, reqlevel = select(6, GetItemInfo(item)), select(7, GetItemInfo(item)), select(5, GetItemInfo(item))
 	if class == ARMOR then
-		local wearerTable = {                
+		local wearerTable = {  
+			-- This is the table to identify the armor type such as plate, mail, leather and cloth              
 			["DEATHKNIGHT"] = select(5, GetAuctionItemSubClasses(2)),
 			["DRUID"] = select(3, GetAuctionItemSubClasses(2)),
 			["HUNTER"] = select(4, GetAuctionItemSubClasses(2)),
@@ -117,9 +114,11 @@ function PileSeller:CanTransmog(item)
 			["WARRIOR"] = select(5, GetAuctionItemSubClasses(2))           
 		}
 		local playerClass = select(2, UnitClass("player"))
+		-- if it's not something from the table above then it's a shield
 		if subclass == wearerTable[playerClass] then return true 
 		else 
 			if subclass == select(7, GetAuctionItemSubClasses(2)) then
+				-- the shield wearers
 				return playerClass == "WARRIOR" or playerClass == "SHAMAN" or playerClass == "PALADIN"
 			end
 			return false

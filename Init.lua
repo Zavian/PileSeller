@@ -58,12 +58,6 @@ PileSeller.settings = {
         text = "Show confirmation before selling the loot.",
         sub = false
     },
-    --[2] = {
-    --    name = "autoDestroySetting",
-    --    default = false,
-    --    text = "Auto destroy items if unable to loot.(|cFFFF0000TODO|r)",
-    --    sub = false
-    --},
     [2] = {
         name = "sellJunkSetting",
         default = true,
