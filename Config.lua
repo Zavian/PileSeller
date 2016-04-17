@@ -14,6 +14,7 @@ local lastClicked
 --- outbut: none
 function PileSeller:PopulateList(list, items, literal)
 	PileSeller:ClearAllButtons(list)
+	PileSeller:debugprint(list:GetName() .. " populating")
 	if not literal then
 		for i = 1, #items do
 			PileSeller:CreateScrollButton(list, items[i], i, 21)
@@ -167,93 +168,98 @@ end
 --- input: 	none
 --- output: none
 function PileSeller:ShowConfig(args)
+	PileSeller:debugprint("entered showconfig")
 	local switchTo = ""
 	if args == "config" then switchTo = "Items"
 	elseif args == "items" then switchTo = "Config" end
+	if not PileSeller.UIConfig then
+		PileSeller.UIConfig = CreateFrame("Frame", "PileSeller_ConfigFrame", UIParent, "ThinBorderTemplate")
+		PileSeller.UIConfig:SetFrameStrata("MEDIUM")
+		PileSeller.UIConfig:SetSize(500, 400)
+		PileSeller.UIConfig:SetPoint("RIGHT", UIParent, -100, 0)
+		PlaySound("igCharacterInfoOpen");
+		PileSeller:MakeMovable(PileSeller.UIConfig)
 
-	if PileSeller.UIConfig then 
-		if PileSeller.UIConfig:IsShown() then return 
+		-- Texture
+		PileSeller.UIConfig.bg = PileSeller.UIConfig:CreateTexture()
+		PileSeller.UIConfig.bg:SetAllPoints(PileSeller.UIConfig)
+		PileSeller.UIConfig.bg:SetTexture(.1,.1,.1,.8)
+
+		-- Title
+		PileSeller.UIConfig.title = PileSeller.UIConfig:CreateFontString("PileSeller_ConfigFrame_Title", "OVERLAY", "GameFontHighlight")
+		PileSeller.UIConfig.title:SetPoint("TOPLEFT", PileSeller.UIConfig, "TOPLEFT", 10, -10)
+		PileSeller.UIConfig.title:SetText("|cFF" .. PileSeller.color .. "Pile|rSeller")
+
+		-- Switch Mode
+		PileSeller.UIConfig.switch = CreateFrame("Button", "PileSeller_ConfigFrame_SwitchButton", PileSeller.UIConfig, "GameMenuButtonTemplate")
+		PileSeller.UIConfig.switch:SetPoint("TOPRIGHT", PileSeller.UIConfig, "TOPRIGHT", -30, -4)
+		PileSeller.UIConfig.switch:SetSize(75, 26)
+		PileSeller.UIConfig.switch:SetText(switchTo)
+		PileSeller.UIConfig.switch:SetScript("OnClick", function()
+			local t = PileSeller.UIConfig.switch:GetText()
+			if t == "Items" then
+				t = "Config"
+				PileSeller:CreateItemsSection(PileSeller.UIConfig)
+				 PileSeller.UIConfig.tutorial:Show()
+			elseif t == "Config" then
+				t = "Items"
+				CreateConfigSection(PileSeller.UIConfig)
+				 PileSeller.UIConfig.tutorial:Hide()
+			end
+			PileSeller.UIConfig.switch:SetText(t)
 		end
-	end
-	PileSeller.UIConfig = CreateFrame("Frame", "PileSeller_ConfigFrame", UIParent, "ThinBorderTemplate")
-	PileSeller.UIConfig:SetFrameStrata("HIGH")
-	PileSeller.UIConfig:SetSize(500, 400)
-	PileSeller.UIConfig:SetPoint("RIGHT", UIParent, -100, 0)
-	PlaySound("igCharacterInfoOpen");
-	PileSeller:MakeMovable(PileSeller.UIConfig)
-
-	-- Texture
-	PileSeller.UIConfig.bg = PileSeller.UIConfig:CreateTexture()
-	PileSeller.UIConfig.bg:SetAllPoints(PileSeller.UIConfig)
-	PileSeller.UIConfig.bg:SetTexture(.1,.1,.1,.8)
-
-	-- Title
-	PileSeller.UIConfig.title = PileSeller.UIConfig:CreateFontString("PileSeller_ConfigFrame_Title", "OVERLAY", "GameFontHighlight")
-	PileSeller.UIConfig.title:SetPoint("TOPLEFT", PileSeller.UIConfig, "TOPLEFT", 10, -10)
-	PileSeller.UIConfig.title:SetText("|cFF" .. PileSeller.color .. "Pile|rSeller")
-
-	-- Switch Mode
-	PileSeller.UIConfig.switch = CreateFrame("Button", "PileSeller_ConfigFrame_SwitchButton", PileSeller.UIConfig, "GameMenuButtonTemplate")
-	PileSeller.UIConfig.switch:SetPoint("TOPRIGHT", PileSeller.UIConfig, "TOPRIGHT", -30, -4)
-	PileSeller.UIConfig.switch:SetSize(75, 26)
-	PileSeller.UIConfig.switch:SetText(switchTo)
-	PileSeller.UIConfig.switch:SetScript("OnClick", function()
-		local t = PileSeller.UIConfig.switch:GetText()
-		if t == "Items" then
-			t = "Config"
-			PileSeller:CreateItemsSection(PileSeller.UIConfig)
-			 PileSeller.UIConfig.tutorial:Show()
-		elseif t == "Config" then
-			t = "Items"
-			CreateConfigSection(PileSeller.UIConfig)
-			 PileSeller.UIConfig.tutorial:Hide()
-		end
-		PileSeller.UIConfig.switch:SetText(t)
-	end
-	)
-	
-	-- Tutorial Button
-	PileSeller.UIConfig.tutorial = CreateFrame("Button", "PileSeller_ConfigFrame_TutorialButton", PileSeller.UIConfig)
-	PileSeller.UIConfig.tutorial:SetSize(50, 50)
-	PileSeller.UIConfig.tutorial:SetPoint("BOTTOMRIGHT", PileSeller.UIConfig, "BOTTOMRIGHT", 15, -15)
-	PileSeller.UIConfig.tutorial:SetNormalTexture("Interface\\COMMON\\help-i")
-	PileSeller.UIConfig.tutorial:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-	PileSeller.UIConfig.tutorial:SetScript("OnClick", function()
-			PileSeller:ToggleTutorial(PileSeller.UIConfig)
-		end
-	)
-	
-	
-	-- Tracking Button
-	PileSeller.UIConfig.toggleTracking = CreateFrame("Button", "PileSeller_ConfigFrame_ToggleTracking", PileSeller.UIConfig, "GameMenuButtonTemplate")
-	PileSeller.UIConfig.toggleTracking:SetPoint("TOP", PileSeller.UIConfig, "TOP", 0, 0)
-	PileSeller.UIConfig.toggleTracking:SetSize(125, 26)
-	PileSeller.UIConfig.toggleTracking:SetText(psSettings["trackSetting"] and "Stop tracking" or "Start tracking")
-	PileSeller.UIConfig.toggleTracking:SetScript("OnClick", function()
-		local b = PileSeller.UIConfig.toggleTracking:GetText() == "Start tracking"
-		PileSeller:ToggleTracking(b)
+		)
+		
+		-- Tutorial Button
+		PileSeller.UIConfig.tutorial = CreateFrame("Button", "PileSeller_ConfigFrame_TutorialButton", PileSeller.UIConfig)
+		PileSeller.UIConfig.tutorial:SetSize(50, 50)
+		PileSeller.UIConfig.tutorial:SetPoint("BOTTOMRIGHT", PileSeller.UIConfig, "BOTTOMRIGHT", 15, -15)
+		PileSeller.UIConfig.tutorial:SetNormalTexture("Interface\\COMMON\\help-i")
+		PileSeller.UIConfig.tutorial:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+		PileSeller.UIConfig.tutorial:SetScript("OnClick", function()
+				PileSeller:ToggleTutorial(PileSeller.UIConfig)
+			end
+		)
+		
+		
+		-- Toggle Tracking Button
+		PileSeller.UIConfig.toggleTracking = CreateFrame("Button", "PileSeller_ConfigFrame_ToggleTracking", PileSeller.UIConfig, "GameMenuButtonTemplate")
+		PileSeller.UIConfig.toggleTracking:SetPoint("TOP", PileSeller.UIConfig, "TOP", 0, 0)
+		PileSeller.UIConfig.toggleTracking:SetSize(125, 26)
 		PileSeller.UIConfig.toggleTracking:SetText(psSettings["trackSetting"] and "Stop tracking" or "Start tracking")
-	end
-	)
-	PileSeller.UIConfig.toggleTracking:SetBackdrop({
-		edgeFile = [[Interface\Buttons\WHITE8X8]], 
-		edgeSize = 3, 
-		insets = {
-				left = 1,
-				right = 1,
-				top = 1,
-				bottom = 1
-  		}
-	})
-	PileSeller.UIConfig.toggleTracking:SetBackdropBorderColor(1, 1, 1, psSettings["trackSetting"] and 1 or 0)
+		PileSeller.UIConfig.toggleTracking:SetScript("OnClick", function()
+			local b = PileSeller.UIConfig.toggleTracking:GetText() == "Start tracking"
+			PileSeller:ToggleTracking(b)
+			PileSeller.UIConfig.toggleTracking:SetText(psSettings["trackSetting"] and "Stop tracking" or "Start tracking")
+		end
+		)
+		PileSeller.UIConfig.toggleTracking:SetBackdrop({
+			edgeFile = [[Interface\Buttons\WHITE8X8]], 
+			edgeSize = 3, 
+			insets = {
+					left = 1,
+					right = 1,
+					top = 1,
+					bottom = 1
+	  		}
+		})
+		PileSeller.UIConfig.toggleTracking:SetBackdropBorderColor(1, 1, 1, psSettings["trackSetting"] and 1 or 0)
 
-	PileSeller.UIConfig.close = CreateFrame("Button", "PileSeller_ConfigFrame_CloseButton", PileSeller.UIConfig, "UIPanelCloseButton")
-	PileSeller.UIConfig.close:SetPoint("TOPRIGHT", PileSeller.UIConfig)
-	PileSeller.UIConfig.close:SetSize(34, 34)
-	PileSeller.UIConfig.close:SetScript("OnClick", HideConfig)
+		PileSeller.UIConfig.close = CreateFrame("Button", "PileSeller_ConfigFrame_CloseButton", PileSeller.UIConfig, "UIPanelCloseButton")
+		PileSeller.UIConfig.close:SetPoint("TOPRIGHT", PileSeller.UIConfig)
+		PileSeller.UIConfig.close:SetSize(34, 34)
+		PileSeller.UIConfig.close:SetScript("OnClick", HideConfig)
+	else 
+		PileSeller.UIConfig:Show() 
+		PlaySound("igCharacterInfoOpen");
+		PileSeller.UIConfig.switch:SetText(switchTo)
+	end
 	if args == "items" then
+		PileSeller:debugprint("entered showconfig items")
 		PileSeller:CreateItemsSection(PileSeller.UIConfig)
-	elseif args == "config" then		
+		PileSeller.UIConfig.tutorial:Show()
+	elseif args == "config" then
+		PileSeller:debugprint("entered showconfig config")		
 		CreateConfigSection(PileSeller.UIConfig)
 	end
 end
@@ -264,6 +270,8 @@ end
 --- output:	sound
 function HideConfig()
 	PileSeller.UIConfig:Hide()
+	--for i = 0, #UISpecialFrames do if UISpecialFrames[i] == "PileSeller_ConfigFrame" then print("kek"); tremove(UISpecialFrames, i) end end
+	--tremove(UISpecialFrames, "PileSeller_ConfigFrame")
 	PlaySound("igCharacterInfoClose")
 end
 
@@ -290,6 +298,7 @@ end
 --- Function to create the item info window
 function CreateItemInfos(UIConfig)
 	HideAllFromConfig(UIConfig)
+
 	UIConfig.itemInfos = CreateFrame("Frame", "PileSeller_ConfigFrame_ItemInfos", UIConfig, "ThinBorderTemplate")
 	UIConfig.itemInfos:SetSize(200, 300)
 	UIConfig.itemInfos:SetPoint("LEFT", UIConfig, -UIConfig.itemInfos:GetWidth() + 10, 0)
@@ -418,6 +427,7 @@ function PileSeller:SetItemInfo(parent, item)
 end
 
 function PileSeller:CreateItemsSection(UIConfig)
+	PileSeller:debugprint("entered createitemssection")
 	CreateItemInfos(UIConfig)
 	CreateSavedSection(UIConfig)
 	CreateToSellSection(UIConfig)
@@ -471,17 +481,19 @@ function PileSeller:CreateScroll(parent, name, width, height)
 end
 
 function CreateSavedSection(UIConfig)	
+	PileSeller:debugprint("entered createitemssection saved")
 	--[[SAVED SECTION]]--
 	if not UIConfig.savedScroll then
 		UIConfig.savedScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_SavedScroll", 260, 120)
 		UIConfig.savedScroll:SetPoint("TOPLEFT", UIConfig, 20, -35)
 		UIConfig.savedScroll:SetParent(UIConfig)
-		PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved)
 	else 
-		UIConfig.savedScroll:Show(); 
+		PileSeller:debugprint("entered createitemssection saved else")
+		UIConfig.savedScroll:Show()
 		UIConfig.savedScroll:SetScrollChild(UIConfig.savedScroll.content)
 		UIConfig.savedScroll:EnableMouseWheel(true) 
 	end
+	PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved)
 
 	if not UIConfig.savedScroll.lblTitle then
 		UIConfig.savedScroll.lblTitle = UIConfig.savedScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -584,8 +596,8 @@ function CreateToSellSection(UIConfig)
 		UIConfig.toSellScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_ToSellScroll", 260, 100)
 		UIConfig.toSellScroll:SetPoint("BOTTOM", UIConfig.savedScroll, 0, -UIConfig.savedScroll:GetHeight() - 10)
 		UIConfig.toSellScroll:SetParent(UIConfig)
-		PileSeller:PopulateList(UIConfig.toSellScroll.content, psItems)
 	else UIConfig.toSellScroll:Show(); UIConfig.toSellScroll:EnableMouseWheel(true) end
+	PileSeller:PopulateList(UIConfig.toSellScroll.content, psItems)
 
 	if not UIConfig.toSellScroll.lblTitle then
 		UIConfig.toSellScroll.lblTitle = UIConfig.toSellScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -607,10 +619,10 @@ function CreateIgnoreZone(UIConfig)
 	if not UIConfig.ignoredScroll then
 		UIConfig.ignoredScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_IgnoredScroll", 260, 55)
 		UIConfig.ignoredScroll:SetPoint("BOTTOM", UIConfig.toSellScroll, 0, -65)
-		UIConfig.ignoredScroll:SetParent(UIConfig)
-		PileSeller:PopulateList(UIConfig.ignoredScroll, psIgnoredZones)
+		UIConfig.ignoredScroll:SetParent(UIConfig)		
 	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true) end
-	
+	PileSeller:PopulateList(UIConfig.ignoredScroll, psIgnoredZones)
+
 	-- Creating the add item bar
 	if not UIConfig.txtAddIgnoreZone then 
 		UIConfig.txtAddIgnoreZone = CreateFrame("EditBox", nil, UIConfig.ignoredScroll)

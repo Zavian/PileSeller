@@ -19,10 +19,10 @@ function psEvents:ADDON_LOADED(...)
 	addoname = select(1,...)
 	if addoname == "PileSeller" then
 		if psSettings["debug"] then
-			print("|cFFFF0000THE DEBUG MODE IS ACTIVATED. IF YOU DON'T WISH SO, PLEASE TYPE /ps debug ON YOUR CHAT OR ELSE YOU WILL PROBABLY ENCOUNTER A LOT OF SPAM")
+			PileSeller:Print("|cFFFF0000THE DEBUG MODE IS ACTIVATED. IF YOU DON'T WISH SO, PLEASE TYPE /ps debug ON YOUR CHAT OR ELSE YOU WILL PROBABLY ENCOUNTER A LOT OF SPAM")
 		end
 		if psSettings["hideMinimapButton"] then
-			print("|cFF" .. PileSeller.color .. "Pile|rseller loaded. Type /pileseller o /ps to get into it!" )
+			print("|cFF" .. PileSeller.color .. "Pile|rSeller loaded. Type /pileseller o /ps to get into it!" )
 			PileSeller_MinimapButton:Hide()
 		else PileSeller_MinimapButton:Show() end
 		if psItems then
@@ -37,6 +37,9 @@ function psEvents:ADDON_LOADED(...)
 			end
 		end
 		PileSeller:PileSeller_MinimapButton_Reposition()
+		tinsert(UISpecialFrames, "PileSeller_ConfigFrame") 
+		tinsert(UISpecialFrames, "PileSeller_SellingBoxFrame")
+		tinsert(UISpecialFrames, "PileSeller_SellingFrame")
 	end
 end
 
@@ -289,9 +292,9 @@ function psEvents:MERCHANT_SHOW(...)
 		if cost ~= 0 then
 			local g = psSettings["repairGuildSetting"] and CanGuildBankRepair()	and cost <= GetGuildBankWithdrawMoney()	
 			RepairAllItems(g)
-			local s = "|cFF" .. PileSeller.color .. "Pile|rSeller: Gear repaired for " .. PileSeller:getProfitPerCoin(cost)
+			local s = "Gear repaired for " .. PileSeller:getProfitPerCoin(cost)
 			if g then s = s .. " with guild funds" end
-			print(s .. ".")
+			PileSeller:Print(s .. ".")
 		end
 	end
 	if #psItems > 0 then
@@ -330,7 +333,7 @@ function PileSeller:ToggleTracking(set)
 		end
 	else
 		if psSettings["trackSetting"] then
-			psSettings["trackSetting"] = false; print("|cFF" .. PileSeller.color .. "Pile|rSeller: |cFFFF0000Tracking disabled.|r") 
+			psSettings["trackSetting"] = false; PileSeller:Print("|cFFFF0000Tracking disabled.|r") 
 			PileSeller:GlowButton(false)
 			if PileSeller.UIConfig then
 				PileSeller.UIConfig.toggleTracking:SetText("Start tracking")
@@ -626,30 +629,33 @@ function SlashCmdList.PILESELLER(msg, editbox)
 			if s then
 				if string.match(s, "item[%-?%d:]+") then
 					PileSeller:addItem(s, psItemsSaved)
+					PileSeller:Print(s .. " added to the saved list.")
 					if PileSeller.UIConfig then
 						PileSeller:PopulateList(PileSeller.UIConfig.savedScroll.content, psItemsSaved)
 					end
-				end
+				else PileSeller:Print("Error") end
 			end
 		elseif string.match(msg, "removeitem ") then
 			local s = string.gsub(msg, "removeitem  ", "")
 			if s then
 				if string.match(s, "item[%-?%d:]+") then
 					PileSeller:removeItem(s, psItemsSaved, nil)
+					PileSeller:Print(s .. " removed from the saved list.")
 					if PileSeller.UIConfig then
 						PileSeller:PopulateList(PileSeller.UIConfig.savedScroll.content, psItemsSaved)
 					end
-				end
+				else PileSeller:Print("Error") end
 			end
 		elseif string.match(msg, "removesell ") then
 			local s = string.gsub(msg, "removesell  ", "")
 			if s then
 				if string.match(s, "item[%-?%d:]+") then
 					PileSeller:removeItem(s, psItems, nil)
+					PileSeller:Print(s .. " removed from the selling list.")
 					if PileSeller.UIConfig then
 						PileSeller:PopulateList(PileSeller.UIConfig.toSellScroll.content, psItems)
 					end
-				end
+				else PileSeller:Print("Error") end
 			end
 		elseif msg == "start" then
 			PileSeller:ToggleTracking(true)
@@ -659,8 +665,10 @@ function SlashCmdList.PILESELLER(msg, editbox)
 			local s = string.gsub(msg, "ignorezone ", "")
 			if not PileSeller:IsIgnored(s) then
 				tinsert(psIgnoredZones, s)
+				PileSeller:Print(s .. " added to the ignored zones list.")
 			else 
 				tremove(psIgnoredZones, PileSeller:IsIgnored(s)) 
+				PileSeller:Print(s .. " removed to the ignored zones list.")
 			end
 			if PileSeller.UIConfig then
 				PileSeller:PopulateList(PileSeller.UIConfig.ignoredScroll.content, psIgnoredZones, true)
@@ -669,9 +677,13 @@ function SlashCmdList.PILESELLER(msg, editbox)
 			--- Are you someone who isn't the dev? I don't suggest you to activate this option
 			psSettings["debug"] = not psSettings["debug"]
 			local append = psSettings["debug"] and "|cFF00FF00true|r" or "|cFFFF0000false|r"
-			print("DEBUG: " .. append)
+			PileSeller:Print("DEBUG: " .. append)
 
 
 		end 
 	end
+end
+
+function PileSeller:Print(text)
+	print("|cFF" .. PileSeller.color .. "Pile|rSeller: " .. text)
 end

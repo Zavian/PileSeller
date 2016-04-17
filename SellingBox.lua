@@ -3,6 +3,7 @@ local PileSeller = _G.PileSeller
 local psSellingBoxFrame = CreateFrame("FRAME", "PileSeller_SellingBoxFrame", UIParent, "ThinBorderTemplate")
 
 
+
 PileSeller:MakeMovable(psSellingBoxFrame)
 psSellingBoxFrame:Hide()
 psSellingBoxFrame:SetSize(350, 215)
