@@ -1,6 +1,6 @@
 ## Interface: 60200
 ## Title : |cFF6cafccPile|rSeller
-## Version: 1.11
+## Version: 1.1.2
 ## Notes: Simple seller based on sessions. /pileseller
 ## Author: Zavian
 ## Email: zavian.mail@gmail.com

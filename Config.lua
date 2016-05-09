@@ -39,6 +39,7 @@ function PileSeller:ClearAllButtons(parent)
 	while b do
 		parent[name .. i].t:SetText("")
 		parent[name .. i]:SetBackdropColor(.27, .27, .27, 1)
+		parent[name .. i]:SetSize(parent[name .. i]:GetWidth(),0)
 		parent[name .. i]:SetHighlightTexture(nil)
 		parent[name .. i]:SetScript("OnClick", nil)
 		parent[name .. i]:SetScript("OnEnter", nil)
@@ -177,8 +178,12 @@ function PileSeller:ShowConfig(args)
 		PileSeller.UIConfig:SetFrameStrata("MEDIUM")
 		PileSeller.UIConfig:SetSize(500, 400)
 		PileSeller.UIConfig:SetPoint("RIGHT", UIParent, -100, 0)
-		PlaySound("igCharacterInfoOpen");
+		PlaySound("igCharacterInfoOpen")
 		PileSeller:MakeMovable(PileSeller.UIConfig)
+
+		PileSeller.UIConfig:SetScript("OnShow", function()
+			PileSeller:UpdateUIInfo()
+		end)
 
 		-- Texture
 		PileSeller.UIConfig.bg = PileSeller.UIConfig:CreateTexture()
@@ -394,6 +399,8 @@ function PileSeller:SetItemInfo(parent, item)
 		else tableToGet = psItems end
 
 		PileSeller:removeItem(l, tableToGet, lastClicked)
+		PileSeller:UpdateUIInfo()
+
 	end
 	)
 	if lastClicked then 
@@ -552,6 +559,7 @@ function CreateSavedSection(UIConfig)
 					end
 					PileSeller:addItem(t, psItemsSaved, UIConfig.savedScroll.content)
 					UIConfig.txtAddSavedItem:SetText("")
+					PileSeller:UpdateUIInfo()
 				end
 			end
 		end
@@ -581,6 +589,7 @@ function CreateSavedSection(UIConfig)
 					end
 					PileSeller:addItem(t, psItemsSaved, UIConfig.savedScroll.content)
 					UIConfig.txtAddSavedItem:SetText("")
+					PileSellser:UpdateUIInfo()
 				end
 			end
 		end
@@ -760,6 +769,12 @@ function PileSeller:CreateCheckButton(check, parent, y)
 	if check.slaveOf then ToggleCheckAndText(parent, name, psSettings[check.slaveOf]) end
 	
 	parent[name]:SetParent(parent)
+end
+
+function PileSeller:UpdateUIInfo()
+	local p = GetSell()
+	PileSeller.UIConfig.toSellScroll.lblTitle.lblDesc:SetText("Items to sell: " .. #psItems .. "|nProfit: " .. p)
+	PileSeller.UIConfig.savedScroll.lblTitle.lblDesc:SetText("Items saved: " .. #psItemsSaved .. "|nItems found: " .. PileSeller:tablelength(psItemsSavedFound))
 end
 
 function PileSeller:PileSeller_MinimapButton_Reposition()

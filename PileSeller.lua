@@ -63,6 +63,7 @@ function psEvents:CHAT_MSG_LOOT(...)
 					if PileSeller.UIConfig then
 						if PileSeller.UIConfig:IsShown() then
 							PileSeller:addItem(item, psItems, PileSeller.UIConfig.toSellScroll.content)
+							PileSeller:UpdateUIInfo()
 						else tinsert(psItems, item) end
 					else tinsert(psItems, item) end
 				end
