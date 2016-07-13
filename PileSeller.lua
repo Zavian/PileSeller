@@ -341,6 +341,20 @@ function PileSeller:ToggleTracking(set)
 			end
 		end
 	end
+	for i = 0, 10 do
+		if _G["StaticPopup" .. i] then
+			if _G["StaticPopup" .. i .. "Text"] then
+				if _G["StaticPopup" .. i .. "Text"]:GetText() == PileSeller.wishToTrack then
+					if _G["StaticPopup" .. i].checkbox1:GetChecked() then
+						psSettings["keepTrasmogs"] = _G["StaticPopup" .. i].checkbox1:GetChecked()
+						psSettings["keepTier"] = _G["StaticPopup" .. i].checkbox2:GetChecked()
+						psSettings["keepCraftingReagents"] = _G["StaticPopup" .. i].checkbox3:GetChecked()
+						psSettings["keepBoes"] = _G["StaticPopup" .. i].checkbox4:GetChecked()
+					end
+				end
+			end
+		end
+	end
 
 end
 
@@ -359,19 +373,7 @@ function psEvents:ZONE_CHANGED_NEW_AREA(...)
 	if t and not garrison then
 		if not g then
 			if not psSettings["trackSetting"] then
-				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-				  text = "Do you wish to track the items in this run?",
-				  button1 = "Yes",
-				  button2 = "No",
-				  OnAccept = function()
-					 PileSeller:ToggleTracking(true)
-				  end,
-				  timeout = 0,
-				  whileDead = true,
-				  hideOnEscape = true,
-				  preferredIndex = 3,
-				}
-				StaticPopup_Show ("PS_TOGGLE_TRACKING")
+				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
 			end
 		else 
 			if psSettings["trackSetting"] and psSettings["showAlertSetting"] then
@@ -418,19 +420,7 @@ function psEvents:RAID_INSTANCE_WELCOME(...)
 	if t then
 		if not g then
 			if not psSettings["trackSetting"] then
-				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-				  text = "Do you wish to track the items in this run?",
-				  button1 = "Yes",
-				  button2 = "No",
-				  OnAccept = function()
-					 PileSeller:ToggleTracking(true)
-				  end,
-				  timeout = 0,
-				  whileDead = true,
-				  hideOnEscape = true,
-				  preferredIndex = 3,
-				}
-				StaticPopup_Show ("PS_TOGGLE_TRACKING")
+				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
 			end
 		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {

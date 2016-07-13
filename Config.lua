@@ -4,6 +4,60 @@ local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:15:15|t"
 
 local lastClicked 
 
+function PileSeller:CreateCunstomStaticPopup(text)
+	StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+	  text = text,
+	  button1 = "Yes",
+	  button2 = "No",
+	  OnAccept = function()
+		 PileSeller:ToggleTracking(true)
+	  end,
+	  timeout = 0,
+	  whileDead = true,
+	  hideOnEscape = true,
+	  preferredIndex = 3,
+	}
+	StaticPopup_Show ("PS_TOGGLE_TRACKING")
+	for i = 1, 10 do
+		if _G["StaticPopup" .. i] then
+			if _G["StaticPopup" .. i .. "Text"] then
+				if _G["StaticPopup" .. i .. "Text"]:GetText() == PileSeller.wishToTrack then
+					_G["StaticPopup" .. i].checkbox1 = CreateFrame("CheckButton", "chkTransmog", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox1:SetSize(25, 25)
+					_G["StaticPopup" .. i].checkbox2 = CreateFrame("CheckButton", "chkTiers", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox2:SetSize(25, 25) 
+					_G["StaticPopup" .. i].checkbox3 = CreateFrame("CheckButton", "chkCrafting", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox3:SetSize(25, 25)
+					_G["StaticPopup" .. i].checkbox4 = CreateFrame("CheckButton", "chkBoe", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox4:SetSize(25, 25)
+
+					_G["StaticPopup" .. i].checkbox1:SetChecked(psSettings["keepTrasmogs"])
+					_G["StaticPopup" .. i].checkbox2:SetChecked(psSettings["keepTier"])
+					_G["StaticPopup" .. i].checkbox3:SetChecked(psSettings["keepCraftingReagents"])
+					_G["StaticPopup" .. i].checkbox4:SetChecked(psSettings["keepBoes"])
+
+					_G["StaticPopup" .. i].checkbox1.checkbox1text = _G["StaticPopup" .. i].checkbox1:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+					_G["StaticPopup" .. i].checkbox1.checkbox1text:SetText("Don't sell any transmog.")
+
+					_G["StaticPopup" .. i].checkbox2.checkbox2text = _G["StaticPopup" .. i].checkbox2:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+					_G["StaticPopup" .. i].checkbox2.checkbox2text:SetText("Don't sell any tiers I can use.")
+
+					_G["StaticPopup" .. i].checkbox3.checkbox3text = _G["StaticPopup" .. i].checkbox3:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+					_G["StaticPopup" .. i].checkbox3.checkbox3text:SetText("Don't sell any crafting reagent.")
+
+					_G["StaticPopup" .. i].checkbox4.checkbox4text = _G["StaticPopup" .. i].checkbox4:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+					_G["StaticPopup" .. i].checkbox4.checkbox4text:SetText("Don't sell any BoE (Bind on Equip).")
+
+					_G["StaticPopup" .. i].checkbox1:SetPoint("CENTER", _G["StaticPopup" .. i], "LEFT", 70, 32); _G["StaticPopup" .. i].checkbox1.checkbox1text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox1, 25, 0, "RIGHT")
+					_G["StaticPopup" .. i].checkbox2:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox1, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox2.checkbox2text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox2, 25, 0, "RIGHT")
+					_G["StaticPopup" .. i].checkbox3:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox2, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox3.checkbox3text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox3, 25, 0, "RIGHT")
+					_G["StaticPopup" .. i].checkbox4:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox3, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox4.checkbox4text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox4, 25, 0, "RIGHT")
+
+					_G["StaticPopup" .. i]:SetHeight(160)
+
+					return
+				end
+			end
+		end
+	end
+end
+
 
 
 --- Function to write all the contents of a scroll frame

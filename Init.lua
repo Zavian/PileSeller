@@ -3,6 +3,7 @@
 _G.PileSeller = { __addonversion = "1.1" }
 local PileSeller = _G.PileSeller
 PileSeller.color = "6cafcc"
+PileSeller.wishToTrack = "Do you wish to track the items in this run?"
 
 function PileSeller:tablelength(T)
   local count = 0

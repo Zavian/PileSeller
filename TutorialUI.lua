@@ -115,7 +115,7 @@ function PileSeller:ToggleTutorial(ui)
             },
             [19] = {
                 title = "Contact",
-                text = "Feel free to contact me via the curse page or wowinterface, and please report any bugs in either of comment sections"
+                text = "Feel free to contact me via the curse page or wowinterface or even ingame to Zavian-The Maelstrom, and please report any bugs in either of comment sections"
             }
         }
         WriteLesson(tutorials[tutorialIndex], ui)            
