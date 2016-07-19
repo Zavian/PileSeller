@@ -1,6 +1,6 @@
 -- Initialization file
 
-_G.PileSeller = { __addonversion = "1.1" }
+_G.PileSeller = { __addonversion = "2.0" }
 local PileSeller = _G.PileSeller
 PileSeller.color = "6cafcc"
 PileSeller.wishToTrack = "Do you wish to track the items in this run?"
@@ -34,22 +34,24 @@ function PileSeller:PrintTable(t, indent, done)
 
             if type(value) == "table" and not done[value] then
                 done [value] = true
-                print(string.rep ("\t", indent)..tostring(v)..":")
+                print(string.rep ("   ", indent)..tostring(v)..":")
                 PileSeller:PrintTable (value, indent + 2, done)
             elseif type(value) == "userdata" and not done[value] then
                 done [value] = true
-                print(string.rep ("\t", indent)..tostring(v)..": "..tostring(value))
+                print(string.rep ("   ", indent)..tostring(v)..": "..tostring(value))
                 PileSeller:PrintTable ((getmetatable(value) and getmetatable(value).__index) or getmetatable(value), indent + 2, done)
             else
                 if t.FDesc and t.FDesc[v] then
-                    print(string.rep ("\t", indent)..tostring(t.FDesc[v]))
+                    print(string.rep ("   ", indent)..tostring(t.FDesc[v]))
                 else
-                    print(string.rep ("\t", indent)..tostring(v)..": "..tostring(value))
+                    print(string.rep ("   ", indent)..tostring(v)..": "..tostring(value))
                 end
             end
         end
     end
 end
+
+
 
 -- This will be used both into the creation of the checkboxes and on the init of the settings
 PileSeller.settings = {
@@ -90,32 +92,46 @@ PileSeller.settings = {
         default = true,
         text = "Always disable tracking when entering in garrison.",
         sub = false,
-    },
+    },    
     [7] = {
-        name = "keepTrasmogs",
-        default = false,
-        text = "Don't sell any trasmog.",
-        sub = false
-    },
-    [8] = {
         name = "keepTier",
         default = false,
         text = "Don't sell any tier tokens I can use.",
         sub = false
     },
-    [9] = {
+    [8] = {
         name = "keepBoes",
         default = false,
         text = "Don't sell any BoE (Bind on Equip).",
-        sub = false
+        sub = false,
+        f = function()
+            --PileSeller:PrintTable(PileSeller.UIConfig["keepBoes"].lbl)
+            ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogs", PileSeller.UIConfig["keepBoes"]:GetChecked())
+            ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogsNotOwned", PileSeller.UIConfig["keepBoes"]:GetChecked())
+        end
+        --masterOf = ["keepTrasmogs", "keepTrasmogsNotOwned"]
+    },
+    [9] = {
+        name = "keepTrasmogsNotOwned",
+        default = false,
+        text = "Just keep the ones I don't already own.",
+        sub = true,
+        slaveOf = "keepBoes"
     },
     [10] = {
+        name = "keepTrasmogs",
+        default = false,
+        text = "Keep only the ones I can transmog.",
+        sub = true,
+        slaveOf = "keepBoes"
+    },    
+    [11] = {
         name = "keepCraftingReagents",
         default = false,
         text = "Don't sell any Crafting Reagent.",
         sub = false
     },
-    [11] = {
+    [12] = {
         name = "hideMinimapButton",
         default = false,
         text = "Hide minimap button. (You can type /pileseller or /ps to access the addon)",
@@ -127,6 +143,8 @@ PileSeller.settings = {
         end
     }
 }
+
+
 
 function ToggleCheckAndText(ui, check, set)
     ui[check]:SetEnabled(set)

@@ -40,6 +40,7 @@ function psEvents:ADDON_LOADED(...)
 		tinsert(UISpecialFrames, "PileSeller_ConfigFrame") 
 		tinsert(UISpecialFrames, "PileSeller_SellingBoxFrame")
 		tinsert(UISpecialFrames, "PileSeller_SellingFrame")
+		PileSeller:LoadArtifacts()
 	end
 end
 
@@ -56,8 +57,10 @@ function psEvents:CHAT_MSG_LOOT(...)
 		local item = select(1,...) -- This is the link of the item (with some crap text)
 		item = PileSeller:getID(item)
 		if item then
-			if PileSeller:isSaved(item) and psItemsAlert[item] then 
-				message("|cFF" .. PileSeller.color .. "Found |r " .. select(2, GetItemInfo(item)) .. "|cFF" .. PileSeller.color .. ". yay!|r")
+			if PileSeller:isSaved(item) and psItemsAlert[item] then
+				local data = { name = select(1, GetItemInfo(item)), texture = select(10, GetItemInfo(item))}
+				PileSeller:CreateAlert(data)
+				--message("|cFF" .. PileSeller.color .. "Found |r " .. select(2, GetItemInfo(item)) .. "|cFF" .. PileSeller.color .. ". yay!|r")
 			elseif select(11, GetItemInfo(item)) > 0 then
 				if not PileSeller:KeepItem(item) then
 					if PileSeller.UIConfig then
@@ -72,13 +75,29 @@ function psEvents:CHAT_MSG_LOOT(...)
 	end
 end
 
+function PileSeller:IsOwned(id)
+	return C_TransmogCollection.PlayerHasTransmog(id)
+end
+
 function PileSeller:IsBoE(id)
 	local f = CreateFrame('GameTooltip', 'PileSellerScanningTooltip', UIParent, 'GameTooltipTemplate')
 	f:SetOwner(UIParent, 'ANCHOR_NONE') 
 	f:SetItemByID(id)
 	for i = 1, f:NumLines() do
 		local t = _G["PileSellerScanningTooltipTextLeft" .. i]:GetText()
-		if t == ITEM_BIND_ON_EQUIP then return true end
+		if t == ITEM_BIND_ON_EQUIP then 
+			--return true
+			local returner = true
+			if psSettings["keepTrasmogs"] then
+				if psSettings["keepTrasmogsNotOwned"] then
+					returner = not PileSeller:IsOwned(id)
+				end
+				returner = returner and PileSeller:CanTransmog(id)
+			elseif psSettings["keepTrasmogsNotOwned"] then
+				returner = not PileSeller:IsOwned(id)
+			end
+			return returner
+		end
 	end
 	return false
 end
@@ -94,8 +113,16 @@ function PileSeller:IsToken(item)
 	end
 end
 
-function PileSeller:CanTransmog(item)	
-	local canBeSource = select(3, GetItemTransmogrifyInfo(item))
+function PileSeller:CanTransmog(item)
+	--[[
+		C_Transmog.GetItemInfo(ID)
+		Return:
+			[1] = canBeChanged
+			[2] = noChangeReason
+			[3] = canBeSource
+			[4] = noSourceReason
+	]]--
+	local canBeSource = select(3, C_Transmog.GetItemInfo(item))
 	if not canBeSource then return false end
 	if select(9, GetItemInfo(item)) == "INVTYPE_CLOAK" then return true end
 	local class, subclass, reqlevel = select(6, GetItemInfo(item)), select(7, GetItemInfo(item)), select(5, GetItemInfo(item))
@@ -187,7 +214,9 @@ local function onUpdate(self, elapsed)
 							PileSeller.sFrame.sellingLbl:SetText("Sold item " .. item)
 							ShowMerchantSellCursor(1)
 							UseContainerItem(Bag_Index, i)
-							local cost = tonumber(select(11, GetItemInfo(item)))
+							--print(select(11, GetItemInfo(item)))
+							local temp = select(11, GetItemInfo(item))
+							local cost = tonumber(temp)
 							local _p = cost * count
 							profit = profit + _p
 							local rtn = PileSeller:getProfitPerCoin(profit)
@@ -306,13 +335,16 @@ function psEvents:MERCHANT_SHOW(...)
 	end
 end
 
+
+
 function PileSeller:SellJunk()
 	for i = 0, NUM_BAG_SLOTS do
 		for j = 1, GetContainerNumSlots(i) do
 			local item = select(7, GetContainerItemInfo(i, j))
 			if item then
 				local quality = select(3, GetItemInfo(item))
-				if quality == 0 then
+				local vendorable = select(11, GetItemInfo(item)) > 0
+				if quality == 0  and vendorable then
 					ShowMerchantSellCursor(1)
 					UseContainerItem(i, j)
 				end
@@ -338,20 +370,6 @@ function PileSeller:ToggleTracking(set)
 			if PileSeller.UIConfig then
 				PileSeller.UIConfig.toggleTracking:SetText("Start tracking")
 				PileSeller.UIConfig.toggleTracking:SetBackdropBorderColor(1,1,1,0)
-			end
-		end
-	end
-	for i = 0, 10 do
-		if _G["StaticPopup" .. i] then
-			if _G["StaticPopup" .. i .. "Text"] then
-				if _G["StaticPopup" .. i .. "Text"]:GetText() == PileSeller.wishToTrack then
-					if _G["StaticPopup" .. i].checkbox1:GetChecked() then
-						psSettings["keepTrasmogs"] = _G["StaticPopup" .. i].checkbox1:GetChecked()
-						psSettings["keepTier"] = _G["StaticPopup" .. i].checkbox2:GetChecked()
-						psSettings["keepCraftingReagents"] = _G["StaticPopup" .. i].checkbox3:GetChecked()
-						psSettings["keepBoes"] = _G["StaticPopup" .. i].checkbox4:GetChecked()
-					end
-				end
 			end
 		end
 	end
@@ -549,12 +567,65 @@ function PileSeller:IsCraftingReagent(id)
 end
 
 function PileSeller:KeepItem(id)
-	local keepTrasmog = psSettings["keepTrasmogs"] and PileSeller:CanTransmog(id)
 	local keepTier = psSettings["keepTier"] and PileSeller:IsToken(id)
+	print(keepTier)
 	local keepBoE = psSettings["keepBoes"] and PileSeller:IsBoE(id)
+	print(keepBoE)
+	--local keepTrasmog = ( psSettings["keepTrasmogs"] and PileSeller:CanTransmog(id) ) and keepBoE
+	--local keepArtifactPower = psSettings["keepArtifactPower"] and PileSeller:IsArtifact(id, true)
 	local keepCraftingReagent = psSettings["keepCraftingReagents"] and PileSeller:IsCraftingReagent(id)
+	print(keepCraftingReagent)
 	local keepSaved = PileSeller:isSaved(id)
-	return keepTrasmog or keepTier or keepBoE or keepCraftingReagent or keepSaved
+	print(keepSaved)
+
+	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower
+end
+
+
+function PileSeller:UseArtifact(id)
+	for i = 0, NUM_BAG_SLOTS do
+		for j = 1, GetContainerNumSlots(i) do
+			local item = select(7, GetContainerItemInfo(i, j))
+			if item then
+				local artifact = PileSeller:IsArtifact(id, false)
+				if artifact then
+					local artifactId = PileSeller:getID(item)
+					if tonumber(artifactId) == tonumber(id) then 
+						--UseContainerItem(i, j)
+						print("Psych, can't do")
+					end
+				end
+			end
+		end
+	end
+end
+
+function PileSeller:IsArtifact(id, canPrompt)
+	local f = CreateFrame('GameTooltip', 'PileSellerScanningTooltip', UIParent, 'GameTooltipTemplate')
+	f:SetOwner(UIParent, 'ANCHOR_NONE') 
+	f:SetItemByID(id)
+	for i = 1, f:NumLines() do
+		local s = _G["PileSellerScanningTooltipTextLeft" .. i]:GetText()
+		if s:find(ARTIFACT_POWER)  then
+			if psSettings["alertArtifactPower"] and canPrompt then
+				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+					text = "Found artifact power!|nDo you wish to use it?",
+					button1 = "Yes",
+					button2 = "No",
+					OnAccept = function()
+						PileSeller:UseArtifact(id)
+					end,
+					timeout = 0,
+					whileDead = true,
+					hideOnEscape = true,
+					preferredIndex = 3,
+				}
+				StaticPopup_Show ("PS_TOGGLE_TRACKING")
+			end
+			return true
+		end
+	end
+	return false
 end
 
 -- Hook the bags buttons

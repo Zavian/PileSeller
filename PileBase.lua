@@ -486,6 +486,71 @@ local tiers = {
 	}
 }
 
+local artifacts = {
+	--"Darkened T'uure" = 136858, ???
+	--PALADIN_HOLY = 139621, ???
+	demonhunter = {
+		[1] = {id = 127829, name = _G["ARTIFACT_DEMONHUNTER_HAVOC_WEAPONNAME"]},	-- HAVOC
+		[2] = {id = 128832, name = _G["ARTIFACT_DEMONHUNTER_VENGEANCE_WEAPONNAME"]},	-- VENGEANCE
+	},
+	dk = {
+		[1] = {id = 128402, name = _G["ARTIFACT_DK_BLOOD"]},	-- BLOOD
+		[2] = {id = 128293, name = _G["ARTIFACT_DK_FROST"]},	-- FROST
+		[3] = {id = 128403, name = _G["ARTIFACT_DK_UNHOLY"]},	-- UNHOLY
+	},
+	druid = {
+		[1] = {id = 128858, name = _G["ARTIFACT_DRUID_BALANCE"]},	-- BALANCE
+		[2] = {id = 128859, name = _G["ARTIFACT_DRUID_FERAL"]},	-- FERAL
+		[3] = {id = 128821, name = _G["ARTIFACT_DRUID_GUARDIAN"]},	-- GUARDIAN
+		[4] = {id = 128306, name = _G["ARTIFACT_DRUID_RESTO_WEAPONNAME"]},	-- RESTORATION
+	},
+	hunter = {
+		[1] = {id = 128861, name = _G["ARTIFACT_HUNTER_BEAST_WEAPONNAME"]},	-- BEASTMASTER
+		[2] = {id = 128826, name = _G["ARTIFACT_HUNTER_MARKS_WEAPONNAME"]},	-- MM
+		[3] = {id = 128808, name = _G["ARTIFACT_HUNTER_SURV_WEAPONNAME"]},	-- SURVI
+	},
+	mage = {
+		[1] = {id = 127857, name = _G["ARTIFACT_MAGE_ARCANE"]},	-- ARCANE
+		[2] = {id = 128820, name = _G["ARTIFACT_MAGE_FIRE"]},	-- FIRE
+		[3] = {id = 128862, name = _G["ARTIFACT_MAGE_FROST"]},	-- FROST
+	},
+	monk = {
+		[1] = {id = 128938, name = _G["ARTIFACT_MONK_BREWMASTER1"] .. ", " .. _G["ARTIFACT_MONK_BREWMASTER2"]},	-- BW
+		[2] = {id = 128937, name = _G["ARTIFACT_MONK_MISTWEAVER_WEAPONNAME"]},	-- MW
+		[3] = {id = 128940, name = _G["ARTIFACT_MONK_WW"]},	-- WW
+	},
+	paladin = {
+		[1] = {id = 128823, name = _G["ARTIFACT_PALADIN_HOLY_WEAPONNAME"]},	-- HOLY
+		[2] = {id = 128867, name = _G["ARTIFACT_PALADIN_PROT_WEAPONNAME"]},	-- PROT
+		[3] = {id = 137582, name = _G["ARTIFACT_PALADIN_RET_WEAPONNAME"]},	-- RETRI
+	},
+	priest = {
+		[1] = {id = 128868, name = _G["ARTIFACT_PRIEST_DISCIPLINE"]},	-- DISC
+		[2] = {id = 128825, name = _G["ARTIFACT_PRIEST_HOLY_1"] .. ", " .. _G["ARTIFACT_PRIEST_HOLY_2"]},	-- HOLY
+		[3] = {id = 128827, name = _G["ARTIFACT_PRIEST_SHADOW_WEAPONNAME"]},	-- SHADOW
+	},
+	rogue = {
+		[1] = {id = 128870, name = _G["ARTIFACT_ROGUE_ASSASSINATION_WEAPONNAME"]},	-- ASSA
+		[2] = {id = 128872, name = _G["ARTIFACT_ROGUE_OUTLAW_WEAPONNAME"]},	-- OUTLAW
+		[3] = {id = 128476, name = _G["ARTIFACT_ROGUE_SUBTLETY_WEAPONNAME"]},	-- SUB
+	},
+	shaman = {
+		[1] = {id = 128935, name = _G["ARTIFACT_SHAMAN_ELEMENTAL_WEAPONNAME"]},	-- ELE
+		[2] = {id = 128819, name = _G["ARTIFACT_SHAMAN_ENHANCEMENT_WEAPONNAME"]},	-- ENHA
+		[3] = {id = 128911, name = _G["ARTIFACT_SHAMAN_RESTORATION_WEAPONNAME"]},	-- RESTO
+	},
+	warlock = {
+		[1] = {id = 128942, name = _G["ARTIFACT_WARLOCK_AFFLICTION"] .. " " .. _G["ARTIFACT_WARLOCK_AFFLICTION_2"]},	-- AFFLI
+		[2] = {id = 128943, name = _G["ARTIFACT_WARLOCK_DEMO"]},	-- DEMO
+		[3] = {id = 128941, name = _G["ARTIFACT_WARLOCK_DEST"]},	-- DESTRO
+	},
+	warrior = {
+		[1] = {id = 128910, name = _G["ARTIFACT_WARRIOR_ARMS_WEAPONNAME"]}, -- ARMS
+		[2] = {id = 128908, name = _G["ARTIFACT_WARRIOR_FURY_WEAPONNAME"]}, -- FURY
+		[3] = {id = 128289, name = _G["ARTIFACT_WARRIOR_PROT_WEAPONNAME"] .. " " .._G["ARTIFACT_WARRIOR_PROT_WEAPONNAME_SECOND"] }, -- PROTECTION
+	},	
+}
+
 
 function PileSeller:IsTier(level, id)
 	level = tonumber(level)
@@ -504,6 +569,22 @@ function PileSeller:IsTier(level, id)
 		if tiers[expansion][i] == id then return true end
 	end	
 	return false
+end
+
+function PileSeller:GetArtifactByClassAndSpec(class, spec)
+	return artifacts[class:lower()][spec]
+end
+
+function PileSeller:LoadArtifacts()
+    local returner = 0
+    local playerClass = select(2, UnitClass("player"))
+    for i = 1, #artifacts[playerClass:lower()] do
+        if i == GetSpecialization() then returner = artifacts[playerClass:lower()][i] end
+        GetItemInfo(artifacts[playerClass:lower()][i].id)
+        PileSeller:debugprint("Loaded: " .. artifacts[playerClass:lower()][i].id .. ". " .. playerClass:lower())
+    end
+    --PileSeller:debugprint("Returning: " .. returner)
+    return returner 
 end
 
 

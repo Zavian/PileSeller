@@ -4,61 +4,91 @@ local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:15:15|t"
 
 local lastClicked 
 
-function PileSeller:CreateCunstomStaticPopup(text)
-	StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-	  text = text,
-	  button1 = "Yes",
-	  button2 = "No",
-	  OnAccept = function()
-		 PileSeller:ToggleTracking(true)
-	  end,
-	  timeout = 0,
-	  whileDead = true,
-	  hideOnEscape = true,
-	  preferredIndex = 3,
-	}
-	StaticPopup_Show ("PS_TOGGLE_TRACKING")
+function GetStaticPopup(text, returni)
 	for i = 1, 10 do
 		if _G["StaticPopup" .. i] then
 			if _G["StaticPopup" .. i .. "Text"] then
-				if _G["StaticPopup" .. i .. "Text"]:GetText() == PileSeller.wishToTrack then
-					_G["StaticPopup" .. i].checkbox1 = CreateFrame("CheckButton", "chkTransmog", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox1:SetSize(25, 25)
-					_G["StaticPopup" .. i].checkbox2 = CreateFrame("CheckButton", "chkTiers", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox2:SetSize(25, 25) 
-					_G["StaticPopup" .. i].checkbox3 = CreateFrame("CheckButton", "chkCrafting", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox3:SetSize(25, 25)
-					_G["StaticPopup" .. i].checkbox4 = CreateFrame("CheckButton", "chkBoe", _G["StaticPopup" .. i], "UICheckButtonTemplate"); _G["StaticPopup" .. i].checkbox4:SetSize(25, 25)
-
-					_G["StaticPopup" .. i].checkbox1:SetChecked(psSettings["keepTrasmogs"])
-					_G["StaticPopup" .. i].checkbox2:SetChecked(psSettings["keepTier"])
-					_G["StaticPopup" .. i].checkbox3:SetChecked(psSettings["keepCraftingReagents"])
-					_G["StaticPopup" .. i].checkbox4:SetChecked(psSettings["keepBoes"])
-
-					_G["StaticPopup" .. i].checkbox1.checkbox1text = _G["StaticPopup" .. i].checkbox1:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-					_G["StaticPopup" .. i].checkbox1.checkbox1text:SetText("Don't sell any transmog.")
-
-					_G["StaticPopup" .. i].checkbox2.checkbox2text = _G["StaticPopup" .. i].checkbox2:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-					_G["StaticPopup" .. i].checkbox2.checkbox2text:SetText("Don't sell any tiers I can use.")
-
-					_G["StaticPopup" .. i].checkbox3.checkbox3text = _G["StaticPopup" .. i].checkbox3:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-					_G["StaticPopup" .. i].checkbox3.checkbox3text:SetText("Don't sell any crafting reagent.")
-
-					_G["StaticPopup" .. i].checkbox4.checkbox4text = _G["StaticPopup" .. i].checkbox4:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-					_G["StaticPopup" .. i].checkbox4.checkbox4text:SetText("Don't sell any BoE (Bind on Equip).")
-
-					_G["StaticPopup" .. i].checkbox1:SetPoint("CENTER", _G["StaticPopup" .. i], "LEFT", 70, 32); _G["StaticPopup" .. i].checkbox1.checkbox1text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox1, 25, 0, "RIGHT")
-					_G["StaticPopup" .. i].checkbox2:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox1, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox2.checkbox2text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox2, 25, 0, "RIGHT")
-					_G["StaticPopup" .. i].checkbox3:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox2, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox3.checkbox3text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox3, 25, 0, "RIGHT")
-					_G["StaticPopup" .. i].checkbox4:SetPoint("CENTER", _G["StaticPopup" .. i].checkbox3, "CENTER", 0, -20); _G["StaticPopup" .. i].checkbox4.checkbox4text:SetPoint("LEFT", _G["StaticPopup" .. i].checkbox4, 25, 0, "RIGHT")
-
-					_G["StaticPopup" .. i]:SetHeight(160)
-
-					return
+				if _G["StaticPopup" .. i .. "Text"]:GetText() == text then
+					if not returni then
+						return _G["StaticPopup" .. i]
+					else return i end
 				end
 			end
 		end
 	end
 end
 
+function PileSeller:CreateCunstomStaticPopup(text)
+	StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+		text = text,
+		button1 = "Yes",
+		button2 = "No",
+		OnAccept = function()
+			--PileSeller:PrintTable(self)
+			local popup = GetStaticPopup(text)
+			local index = GetStaticPopup(text, true)
+			PileSeller:ToggleTracking(true, 
+				popup.checkbox1:GetChecked(), 
+				popup.checkbox2:GetChecked(), 
+				popup.checkbox3:GetChecked(), 
+				popup.checkbox4:GetChecked()
+			)
+			HideAllFromConfig(popup)
+		end,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+	}
+	StaticPopup_Show ("PS_TOGGLE_TRACKING")
+	local popup = GetStaticPopup(text)
 
+	popup.checkbox1 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox1:SetSize(25, 25)
+	popup.checkbox2 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox2:SetSize(25, 25) 
+	popup.checkbox3 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox3:SetSize(25, 25)
+	popup.checkbox4 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox4:SetSize(25, 25)
+
+	popup.checkbox1:SetChecked(psSettings["keepTrasmogs"])
+	popup.checkbox2:SetChecked(psSettings["keepTier"])
+	popup.checkbox3:SetChecked(psSettings["keepCraftingReagents"])
+	popup.checkbox4:SetChecked(psSettings["keepBoes"])
+
+	popup.checkbox1:SetScript("OnClick", function() popup.checkbox1:SetChecked(not popup.checkbox1:GetChecked()) end)
+	popup.checkbox2:SetScript("OnClick", function() popup.checkbox2:SetChecked(not popup.checkbox2:GetChecked()) end)
+	popup.checkbox3:SetScript("OnClick", function() popup.checkbox3:SetChecked(not popup.checkbox3:GetChecked()) end)
+	popup.checkbox4:SetScript("OnClick", function() popup.checkbox4:SetChecked(not popup.checkbox4:GetChecked()) end)
+
+	popup.checkbox1.checkbox1text = popup.checkbox1:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+	popup.checkbox1.checkbox1text:SetText("Don't sell any transmog.")
+
+	popup.checkbox2.checkbox2text = popup.checkbox2:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+	popup.checkbox2.checkbox2text:SetText("Don't sell any tiers I can use.")
+
+	popup.checkbox3.checkbox3text = popup.checkbox3:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+	popup.checkbox3.checkbox3text:SetText("Don't sell any crafting reagent.")
+
+	popup.checkbox4.checkbox4text = popup.checkbox4:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
+	popup.checkbox4.checkbox4text:SetText("Don't sell any BoE (Bind on Equip).")
+
+	popup.checkbox1:SetPoint("CENTER", popup, "LEFT", 70, 32);
+	popup.checkbox1.checkbox1text:SetPoint("LEFT", popup.checkbox1, 25, 0, "RIGHT")
+	popup.checkbox2:SetPoint("CENTER", popup.checkbox1, "CENTER", 0, -20); 
+	popup.checkbox2.checkbox2text:SetPoint("LEFT", popup.checkbox2, 25, 0, "RIGHT")
+	popup.checkbox3:SetPoint("CENTER", popup.checkbox2, "CENTER", 0, -20); 
+	popup.checkbox3.checkbox3text:SetPoint("LEFT", popup.checkbox3, 25, 0, "RIGHT")
+	popup.checkbox4:SetPoint("CENTER", popup.checkbox3, "CENTER", 0, -20); 
+	popup.checkbox4.checkbox4text:SetPoint("LEFT", popup.checkbox4, 25, 0, "RIGHT")
+	
+	popup:SetHeight(160)
+end
+
+function PileSeller:CreateCunstomStaticPopup(text)
+	local confirmer = CreateFrame("Frame", "PS_TOGGLE_TRACKING", UIParent, "InsetFrameTemplate3")
+	confirmer.Bg:SetTexture([[Interface\DialogFrame\UI-DialogBox-Background]])
+	confirmer:SetPoint("CENTER", 0, 0)
+	confirmer:SetSize(150, 150)
+	--confirmer:Show()
+end
 
 --- Function to write all the contents of a scroll frame
 --- inputs:
@@ -66,16 +96,17 @@ end
 --- 	items 	= list of the items (eg. psItems)
 --- 	literal = wether it's something to get id from or not (eg. ignored zone list)
 --- outbut: none
-function PileSeller:PopulateList(list, items, literal)
+function PileSeller:PopulateList(list, items, width, literal, drops)
+	if not width then width = 258 end
 	PileSeller:ClearAllButtons(list)
 	PileSeller:debugprint(list:GetName() .. " populating")
 	if not literal then
 		for i = 1, #items do
-			PileSeller:CreateScrollButton(list, items[i], i, 21)
+			PileSeller:CreateScrollButton(list, items[i], i, width, 21, drops)
 		end
 	else
 		for i = 1, #items do
-			PileSeller:CreateScrollButton(list, -1, i, 21, items[i])
+			PileSeller:CreateScrollButton(list, -1, i, width, 21, items[i], drops)
 		end
 	end
 end
@@ -111,7 +142,7 @@ end
 	--- height 		= height of a button
 	--- [zoneName]	= used for creating the ignored zones
 --- outbut: none
-function PileSeller:CreateScrollButton(parent, id, progress, height, zoneName)
+function PileSeller:CreateScrollButton(parent, id, progress, width, height, zoneName, sources)
 	local name = parent:GetName() .. "Button" .. progress
 	local text = ""
 	local found = ""
@@ -174,15 +205,24 @@ function PileSeller:CreateScrollButton(parent, id, progress, height, zoneName)
 		end
 	elseif id == -1 then
 		text = zoneName
-		parent[name]:SetScript("OnClick", function()
-			PileSeller.UIConfig.txtAddIgnoreZone:SetText(text)
-		end)
+		if parent:GetName() ~= "PileSeller_ConfigFrame_ItemInfos_MiniDialog_ScrollFrameContent" then			
+			parent[name]:SetScript("OnClick", function()
+				PileSeller.UIConfig.txtAddIgnoreZone:SetText(text)
+			end)
+		else
+			if text == TRANSMOG_SOURCE_1 then
+				parent[name]:SetScript("OnEnter", function()
+					PileSeller:CreateTooltipInfo(parent[name], sources)
+				end)
+				parent[name]:SetScript("OnLeave", function() GameTooltip:Hide() end)
+			end
+		end
 	end
 
 	parent[name].t:SetText(text .. found)
 	parent[name].t:SetPoint("LEFT", parent[name])
-	parent[name].t:SetWidth(258)
-	parent[name]:SetSize(258, height)
+	parent[name].t:SetSize(width, height)
+	parent[name]:SetSize(width, height)
 
 	parent[name]:SetHighlightTexture("Interface\\AddOns\\PileSeller\\media\\highlight", "ADD")
 
@@ -242,7 +282,8 @@ function PileSeller:ShowConfig(args)
 		-- Texture
 		PileSeller.UIConfig.bg = PileSeller.UIConfig:CreateTexture()
 		PileSeller.UIConfig.bg:SetAllPoints(PileSeller.UIConfig)
-		PileSeller.UIConfig.bg:SetTexture(.1,.1,.1,.8)
+		PileSeller.UIConfig.bg:SetTexture([[Interface\Buttons\WHITE8X8]])
+		PileSeller.UIConfig.bg:SetVertexColor(.1,.1,.1,.8)
 
 		-- Title
 		PileSeller.UIConfig.title = PileSeller.UIConfig:CreateFontString("PileSeller_ConfigFrame_Title", "OVERLAY", "GameFontHighlight")
@@ -363,7 +404,8 @@ function CreateItemInfos(UIConfig)
 	UIConfig.itemInfos:SetPoint("LEFT", UIConfig, -UIConfig.itemInfos:GetWidth() + 10, 0)
 	UIConfig.itemInfos.bg = UIConfig.itemInfos:CreateTexture()
 	UIConfig.itemInfos.bg:SetAllPoints(UIConfig.itemInfos)
-	UIConfig.itemInfos.bg:SetTexture(.27,.27,.27,1)
+	UIConfig.itemInfos.bg:SetTexture([[Interface\Buttons\WHITE8X8]])
+	UIConfig.itemInfos.bg:SetVertexColor(.27,.27,.27,1)
 
 	UIConfig.itemInfos.item = CreateFrame("Frame", nil, UIConfig.itemInfos)
 	UIConfig.itemInfos.item:SetSize(50, 50)
@@ -372,40 +414,45 @@ function CreateItemInfos(UIConfig)
 	UIConfig.itemInfos.item.tx:SetTexture("Interface\\Buttons\\UI-CheckBox-Up")
 	UIConfig.itemInfos.item.tx:SetVertexColor(1,1,1,1)
 	UIConfig.itemInfos.item.tx:SetAllPoints()
-	
-	UIConfig.itemInfos.item.itemName = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UIConfig.itemInfos.item.itemName:SetPoint("BOTTOM", UIConfig.itemInfos.item, "BOTTOM", 0, -50)
-	UIConfig.itemInfos.item.itemName:SetText("item name")
-	UIConfig.itemInfos.item.itemName:SetSize(175, 40)
 
-	UIConfig.itemInfos.item.itemClass = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UIConfig.itemInfos.item.itemClass:SetPoint("BOTTOM", UIConfig.itemInfos.item.itemName, "BOTTOM", 0, -25)
-	UIConfig.itemInfos.item.itemClass:SetText("|cFF" .. PileSeller.color .. "Item type: |rsubclass")
+	local infos = {
+		[1] = {obj = "FontString", name = "itemName", inherits = "GameFontNormal" },
+		[2] = {obj = "FontString", name = "itemClass", inherits = "GameFontHighlight" },
+		[3] = {obj = "FontString", name = "itemValue", inherits = "GameFontHighlight" },
+		[4] = {obj = "Button", name = "itemSource" },
+		[5] = {obj = "FontString", name = "itemID", inherits = "GameFontHighlight" },
+	}
 
-	UIConfig.itemInfos.item.itemValue = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UIConfig.itemInfos.item.itemValue:SetPoint("BOTTOM", UIConfig.itemInfos.item.itemClass, "BOTTOM", 0, -40, "TOP")
-	UIConfig.itemInfos.item.itemValue:SetSize(175, 40)
-	UIConfig.itemInfos.item.itemValue:SetText("|cFF" .. PileSeller.color .. "Item value: |rvalue")
 
-	UIConfig.itemInfos.item.itemID = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UIConfig.itemInfos.item.itemID:SetPoint("BOTTOM", UIConfig.itemInfos.item.itemValue, "BOTTOM", 0, -25, "TOP")
-	UIConfig.itemInfos.item.itemID:SetSize(175, 40)
-	UIConfig.itemInfos.item.itemID:SetText("|cFF" .. PileSeller.color .. "Item id: |rvalue")
+
+	for i = 1, #infos do
+		if infos[i].obj == "FontString" then
+			UIConfig.itemInfos.item[infos[i].name] = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", infos[i].inherits)
+			UIConfig.itemInfos.item[infos[i].name]:SetPoint("BOTTOM", UIConfig.itemInfos.item, 0, -20 - (i*20))
+			UIConfig.itemInfos.item[infos[i].name]:SetText("iteminfo." .. i)
+			UIConfig.itemInfos.item[infos[i].name]:SetSize(175, 40)
+		else
+			UIConfig.itemInfos.item[infos[i].name] = CreateFrame("Button", nil, UIConfig.itemInfos.item, "GameMenuButtonTemplate")
+			UIConfig.itemInfos.item[infos[i].name]:SetPoint("BOTTOM", UIConfig.itemInfos.item, 0, -20 - (i*18))
+			UIConfig.itemInfos.item[infos[i].name]:SetText("iteminfo." .. i)
+			UIConfig.itemInfos.item[infos[i].name]:SetSize(125, 21)
+		end
+	end
 
 	UIConfig.itemInfos.item.removeFromList = CreateFrame("Button", nil, UIConfig.itemInfos.item, "GameMenuButtonTemplate")
 	UIConfig.itemInfos.item.removeFromList:SetText("Remove from list")
 	UIConfig.itemInfos.item.removeFromList:SetSize(125, 21)
-	UIConfig.itemInfos.item.removeFromList:SetPoint("BOTTOM", UIConfig.itemInfos.item.itemID, "BOTTOM", 0, -80)
+	UIConfig.itemInfos.item.removeFromList:SetPoint("BOTTOM", UIConfig.itemInfos.item[infos[#infos].name], "BOTTOM", 0, -80)
 
 	UIConfig.itemInfos.item.tryIt = CreateFrame("Button", nil, UIConfig.itemInfos.item, "GameMenuButtonTemplate")
 	UIConfig.itemInfos.item.tryIt:SetText("Preview item")
 	UIConfig.itemInfos.item.tryIt:SetSize(125, 21)
-	UIConfig.itemInfos.item.tryIt:SetPoint("TOP", UIConfig.itemInfos.item.removeFromList, "TOP", 0, 25)
+	UIConfig.itemInfos.item.tryIt:SetPoint("TOP", UIConfig.itemInfos.item.removeFromList, "TOP", 0, 20)
 
 	UIConfig.itemInfos.item.toggleAlert = CreateFrame("Button", nil, UIConfig.itemInfos.item, "GameMenuButtonTemplate")
 	UIConfig.itemInfos.item.toggleAlert:SetText("Set alert")
 	UIConfig.itemInfos.item.toggleAlert:SetSize(125, 21)
-	UIConfig.itemInfos.item.toggleAlert:SetPoint("TOP", UIConfig.itemInfos.item.tryIt, "TOP", 0, 25)
+	UIConfig.itemInfos.item.toggleAlert:SetPoint("TOP", UIConfig.itemInfos.item.tryIt, "TOP", 0, 20)
 
 
 	UIConfig.itemInfos.btnClose = CreateFrame("Button", nil, UIConfig.itemInfos, "UIPanelCloseButton")
@@ -416,8 +463,87 @@ function CreateItemInfos(UIConfig)
 	--SetItemInfo(PileSeller.UIConfig.itemInfos.item, "60844")
 end
 
+function CreateMiniDialog(parent)
+	parent.miniDialog = CreateFrame("Frame", "PileSeller_ConfigFrame_ItemInfos_MiniDialog", parent, "ThinBorderTemplate")
+	parent.miniDialog:SetSize(200, 125)
+	parent.miniDialog:SetPoint("BOTTOM", parent, "BOTTOM")
+	parent.miniDialog.bg = parent.miniDialog:CreateTexture()
+	parent.miniDialog.bg:SetAllPoints(parent.miniDialog)
+	parent.miniDialog.bg:SetTexture([[Interface\Buttons\WHITE8X8]])
+	parent.miniDialog.bg:SetVertexColor(.27,.27,.27,1)
+	parent.miniDialog:SetFrameStrata("HIGH")
+
+	parent.miniDialog.closeButton = CreateFrame("Button", "PileSeller_ConfigFrame_ItemInfos_MiniDialog_CloseButton", parent.miniDialog, "UIPanelCloseButton")
+	parent.miniDialog.closeButton:SetPoint("TOPRIGHT", parent.miniDialog)
+	parent.miniDialog.closeButton:SetSize(26, 26)
+
+	parent.miniDialog.title = parent.miniDialog:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	parent.miniDialog.title:SetText("|cFF".. PileSeller.color .. "Item Source(s)|r")
+	parent.miniDialog.title:SetSize(100, 21)
+	parent.miniDialog.title:SetPoint("TOPLEFT", parent.miniDialog)
+
+	--parent.miniDialog.scroller = CreateFrame("ScrollFrame", nil, parent.miniDialog, "UIPanelScrollFrameTemplate")
+	--parent.miniDialog.scroller:SetSize(175, 100)
+	--parent.miniDialog.scroller:SetPoint("LEFT", parent.miniDialog, "LEFT", 0, -10)
+	--parent.miniDialog.scroller:SetBackdropColor(0,0,0)
+	parent.miniDialog.scroller = PileSeller:CreateScroll(parent.miniDialog, "PileSeller_ConfigFrame_ItemInfos_MiniDialog_ScrollFrame", 175, 100, true)
+	parent.miniDialog.scroller:SetPoint("LEFT", parent.miniDialog, "LEFT", 0, -10)
+	parent.miniDialog.scroller:SetParent(parent.miniDialog)
+
+	parent.miniDialog.scroller.text = parent.miniDialog.scroller:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	parent.miniDialog.scroller.text:SetJustifyH("LEFT")
+	parent.miniDialog.scroller.text:SetJustifyV("TOP")
+	parent.miniDialog.scroller.text:SetText("I have to test\nA very long string\n\nThat can be\nThis long")
+	parent.miniDialog.scroller.text:SetPoint("TOPLEFT", parent.miniDialog, "TOPLEFT", 10, -20)
+	parent.miniDialog.scroller.text:SetSize(170, 75)
+	parent.miniDialog.scroller.text:Hide()
+
+
+	-- REMOVED BECAUSE C_TransmogCollection.GetAppearanceSourceDrops RETURNS WRONG INFO
+	--parent.miniDialog.showBossSource = CreateFrame("Button", nil, parent.miniDialog, "GameMenuButtonTemplate")
+	--parent.miniDialog.showBossSource:SetText("Show instance sources")
+	--parent.miniDialog.showBossSource:SetSize(200, 21)
+	--parent.miniDialog.showBossSource:SetPoint("BOTTOMRIGHT", parent.miniDialog, nil, 0, -5)
+
+	parent.miniDialog:Hide()
+end
+
+function SetMiniDialogInfo(parent, itemLink, thereAreBosses)
+	PileSeller:ClearAllButtons(parent.miniDialog.scroller.content)
+	local sources = PileSeller:GetItemSources(itemLink)
+	if parent.miniDialog:IsShown() then return end 
+	parent.miniDialog:Show()
+	if not sources or not sources[1] then parent.miniDialog.scroller.text:SetText("This item is not trasmogrificable, hence I don't know the source (sorry)."); parent.miniDialog.scroller.text:Show();
+	else
+		parent.miniDialog.scroller.text:Hide()
+		local text = {}
+		local writtenText = {}
+		if #sources[1] >= 1 then
+			for i = 1, #sources[1] do
+				--local name, nameColor, sourceText, sourceColor = WardrobeCollectionFrameModel_GetSourceTooltipInfo(sources[i])
+				if not writtenText[sources[1][i].text] then
+					tinsert(text, sources[1][i].text)
+				end
+				writtenText[sources[1][i].text] = true
+			end
+		end
+
+
+		--if sources[2] then 
+		--	parent.miniDialog.showBossSource:Show() 
+		--	parent.miniDialog.showBossSource:SetScript("OnClick", function() 
+		--		PileSeller:PrintTable(C_TransmogCollection.GetAppearanceSourceDrops(sources[3]))	
+		--	end)
+		--else parent.miniDialog.showBossSource:Hide() end
+		PileSeller:PopulateList(parent.miniDialog.scroller.content, text, 172, true, sources)
+	end
+end
+
 function PileSeller:SetItemInfo(parent, item)
 	parent:GetParent():Show()
+	if parent:GetParent().miniDialog then
+		parent:GetParent().miniDialog:Hide()
+	end
 	local n, l, q, _, _, _, c, _, _, i, v = GetItemInfo(item)
 
 	qualities = {}
@@ -485,6 +611,27 @@ function PileSeller:SetItemInfo(parent, item)
 		if copper > 1 then t = t .. copper .. "|cFFCD7E32c|r" end
 	else t = t .. "No value" end
 	parent.itemValue:SetText(t)
+
+
+	
+	if not WardrobeCollectionFrameModel_GetSourceTooltipInfo then
+		parent.itemSource:SetText("Load Sources")
+		parent.itemSource:SetScript("OnClick", function()
+			CollectionsJournal_LoadUI()
+			parent.itemSource:SetText("Show Sources")
+			parent.itemSource:SetScript("OnClick", function()
+				if not parent:GetParent().miniDialog then CreateMiniDialog(parent:GetParent()) end
+				SetMiniDialogInfo(parent:GetParent(), select(2, GetItemInfo(item)))
+			end)
+			--buttonToClick = CreateFrame("Button", nil, parent, "UIDropDownMenuTemplate")
+		end)
+	else
+		parent.itemSource:SetText("Show Sources")
+		parent.itemSource:SetScript("OnClick", function()
+			if not parent:GetParent().miniDialog then CreateMiniDialog(parent:GetParent()) end
+			SetMiniDialogInfo(parent:GetParent(), select(2, GetItemInfo(item)))
+		end)
+	end
 end
 
 function PileSeller:CreateItemsSection(UIConfig)
@@ -495,7 +642,7 @@ function PileSeller:CreateItemsSection(UIConfig)
 	CreateIgnoreZone(UIConfig)
 end
 
-function PileSeller:CreateScroll(parent, name, width, height)
+function PileSeller:CreateScroll(parent, name, width, height, noBorder)
 	local f = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
 	f:SetSize(width, height)
 	f:SetClampedToScreen(true)
@@ -505,18 +652,19 @@ function PileSeller:CreateScroll(parent, name, width, height)
 	tex:SetTexture([[Interface\Buttons\WHITE8X8]])
 	tex:SetVertexColor(.27,.27,.27,1)
 	tex:SetAllPoints()
-
-	f:SetBackdrop({
-		edgeFile = [[Interface\Buttons\WHITE8X8]], 
-		edgeSize = 1, 
-		insets = {
-			left = 1,
-			right = 1,
-			top = 1,
-			bottom = 1
-	  }
-	})
-	f:SetBackdropBorderColor(0, 0, 0)
+	if not noBorder then
+		f:SetBackdrop({
+			edgeFile = [[Interface\Buttons\WHITE8X8]], 
+			edgeSize = 1, 
+			insets = {
+				left = 1,
+				right = 1,
+				top = 1,
+				bottom = 1
+		  }
+		})
+		f:SetBackdropBorderColor(0, 0, 0)
+	end
 
 	f.content = CreateFrame("Frame", name .. "Content")
 	f.content:SetSize(width, height)
@@ -554,7 +702,7 @@ function CreateSavedSection(UIConfig)
 		UIConfig.savedScroll:SetScrollChild(UIConfig.savedScroll.content)
 		UIConfig.savedScroll:EnableMouseWheel(true) 
 	end
-	PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved)
+	PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved, 258)
 
 	if not UIConfig.savedScroll.lblTitle then
 		UIConfig.savedScroll.lblTitle = UIConfig.savedScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -660,7 +808,7 @@ function CreateToSellSection(UIConfig)
 		UIConfig.toSellScroll:SetPoint("BOTTOM", UIConfig.savedScroll, 0, -UIConfig.savedScroll:GetHeight() - 10)
 		UIConfig.toSellScroll:SetParent(UIConfig)
 	else UIConfig.toSellScroll:Show(); UIConfig.toSellScroll:EnableMouseWheel(true) end
-	PileSeller:PopulateList(UIConfig.toSellScroll.content, psItems)
+	PileSeller:PopulateList(UIConfig.toSellScroll.content, psItems, 258)
 
 	if not UIConfig.toSellScroll.lblTitle then
 		UIConfig.toSellScroll.lblTitle = UIConfig.toSellScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -684,7 +832,7 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.ignoredScroll:SetPoint("BOTTOM", UIConfig.toSellScroll, 0, -65)
 		UIConfig.ignoredScroll:SetParent(UIConfig)		
 	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true) end
-	PileSeller:PopulateList(UIConfig.ignoredScroll, psIgnoredZones)
+	PileSeller:PopulateList(UIConfig.ignoredScroll, psIgnoredZones, 258)
 
 	-- Creating the add item bar
 	if not UIConfig.txtAddIgnoreZone then 
@@ -727,11 +875,11 @@ function CreateIgnoreZone(UIConfig)
 			local t = UIConfig.txtAddIgnoreZone:GetText()
 			if s then				
 				tinsert(psIgnoredZones, t)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
 			else
 				local index = PileSeller:IsIgnored(t)
 				tremove(psIgnoredZones, index)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
 			end
 			UIConfig.txtAddIgnoreZone:SetText("")
 		end
@@ -770,11 +918,11 @@ function CreateIgnoreZone(UIConfig)
 			local t = UIConfig.txtAddIgnoreZone:GetText()
 			if s then				
 				tinsert(psIgnoredZones, t)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
 			else
 				local index = PileSeller:IsIgnored(t)
 				tremove(psIgnoredZones, index)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
 			end
 			UIConfig.txtAddIgnoreZone:SetText("")
 		end
@@ -870,3 +1018,31 @@ end
 function PileSeller_MinimapButton_OnLeave(self)
 	GameTooltip:Hide()
 end
+
+
+
+function collectionJournalToggled(closeNow)
+	if PileSeller.UIConfig then
+		--print("found UIConfig")
+		if PileSeller.UIConfig.itemInfos then
+			--print("found UIConfig.itemInfos")
+			if PileSeller.UIConfig.itemInfos.item.itemSource then
+				--print(PileSeller.UIConfig.itemInfos.item.itemSource:GetText())
+				if PileSeller.UIConfig.itemInfos.item.itemSource:GetText() == "Load Sources" then
+					--print("kekeke")
+					PileSeller.UIConfig.itemInfos.item.itemSource:SetText("Show Sources")
+
+					local id = PileSeller.UIConfig.itemInfos.item.itemID:GetText()
+					id = string.gsub(id, "|cFF" .. PileSeller.color .. "Item ID:|r ", "")
+					--print(id)
+					id = tonumber(id)
+					PileSeller.UIConfig.itemInfos.item.itemSource:SetScript("OnClick", function() 
+						if not PileSeller.UIConfig.itemInfos.miniDialog then CreateMiniDialog(PileSeller.UIConfig.itemInfos) end
+						SetMiniDialogInfo(PileSeller.UIConfig.itemInfos, select(2, GetItemInfo(id)))
+					end)
+				end
+			end
+		end
+	end
+end
+hooksecurefunc("ToggleCollectionsJournal", collectionJournalToggled)
