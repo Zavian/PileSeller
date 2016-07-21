@@ -31,7 +31,8 @@ function PileSeller:CreateCunstomStaticPopup(text)
 				popup.checkbox1:GetChecked(), 
 				popup.checkbox2:GetChecked(), 
 				popup.checkbox3:GetChecked(), 
-				popup.checkbox4:GetChecked()
+				popup.checkbox4:GetChecked(),
+				popup.checkbox5:GetChecked()
 			)
 			HideAllFromConfig(popup)
 		end,
@@ -43,51 +44,50 @@ function PileSeller:CreateCunstomStaticPopup(text)
 	StaticPopup_Show ("PS_TOGGLE_TRACKING")
 	local popup = GetStaticPopup(text)
 
-	popup.checkbox1 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox1:SetSize(25, 25)
-	popup.checkbox2 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox2:SetSize(25, 25) 
-	popup.checkbox3 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox3:SetSize(25, 25)
-	popup.checkbox4 = CreateFrame("CheckButton", nil, popup, "UICheckButtonTemplate"); popup.checkbox4:SetSize(25, 25)
+	local checkboxes = {
+		[1] = {
+			text = "Don't sell any tiers I can use.",
+			variable = "keepTier",
+			sub = false
+		},
+		[2] = {
+			text = "Don't sell any crafting reagent.",
+			variable = "keepCraftingReagents",
+			sub = false
+		},
+		[3] = {
+			text = "Don't sell any BoE.",
+			variable = "keepBoes",
+			sub = false
+		},
+		[4] = {
+			text = "Just keep the ones I don't already own.",
+			variable = "keepTrasmogsNotOwned",
+			sub = true
+		},
+		[5] = {
+			text = "Keep only the ones I can transmog.",
+			variable = "keepTrasmogs",
+			sub = true
+		},
+	}
 
-	popup.checkbox1:SetChecked(psSettings["keepTrasmogs"])
-	popup.checkbox2:SetChecked(psSettings["keepTier"])
-	popup.checkbox3:SetChecked(psSettings["keepCraftingReagents"])
-	popup.checkbox4:SetChecked(psSettings["keepBoes"])
+	local Y, X = 40, 55
+	for i = 1, #checkboxes do
+		popup["checkbox" .. i] = CreateFrame("CheckButton", "popupCheckbox" .. i, popup, "UICheckButtonTemplate") 
+		popup["checkbox" .. i]:SetSize(25, 25)
+		popup["checkbox" .. i]:SetChecked(psSettings[checkboxes[i].variable])
+		popup["checkbox" .. i]:SetScript("OnClick", function() popup["checkbox" .. i]:SetChecked(not popup["checkbox" .. i]:GetChecked()) end)
+		popup["checkbox" .. i].lbl = popup["checkbox" .. i]:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		popup["checkbox" .. i].lbl:SetText(checkboxes[i].text)
 
-	popup.checkbox1:SetScript("OnClick", function() popup.checkbox1:SetChecked(not popup.checkbox1:GetChecked()) end)
-	popup.checkbox2:SetScript("OnClick", function() popup.checkbox2:SetChecked(not popup.checkbox2:GetChecked()) end)
-	popup.checkbox3:SetScript("OnClick", function() popup.checkbox3:SetChecked(not popup.checkbox3:GetChecked()) end)
-	popup.checkbox4:SetScript("OnClick", function() popup.checkbox4:SetChecked(not popup.checkbox4:GetChecked()) end)
-
-	popup.checkbox1.checkbox1text = popup.checkbox1:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-	popup.checkbox1.checkbox1text:SetText("Don't sell any transmog.")
-
-	popup.checkbox2.checkbox2text = popup.checkbox2:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-	popup.checkbox2.checkbox2text:SetText("Don't sell any tiers I can use.")
-
-	popup.checkbox3.checkbox3text = popup.checkbox3:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-	popup.checkbox3.checkbox3text:SetText("Don't sell any crafting reagent.")
-
-	popup.checkbox4.checkbox4text = popup.checkbox4:CreateFontString(nil, "OVERLAY", "GameFontNormal"); 
-	popup.checkbox4.checkbox4text:SetText("Don't sell any BoE (Bind on Equip).")
-
-	popup.checkbox1:SetPoint("CENTER", popup, "LEFT", 70, 32);
-	popup.checkbox1.checkbox1text:SetPoint("LEFT", popup.checkbox1, 25, 0, "RIGHT")
-	popup.checkbox2:SetPoint("CENTER", popup.checkbox1, "CENTER", 0, -20); 
-	popup.checkbox2.checkbox2text:SetPoint("LEFT", popup.checkbox2, 25, 0, "RIGHT")
-	popup.checkbox3:SetPoint("CENTER", popup.checkbox2, "CENTER", 0, -20); 
-	popup.checkbox3.checkbox3text:SetPoint("LEFT", popup.checkbox3, 25, 0, "RIGHT")
-	popup.checkbox4:SetPoint("CENTER", popup.checkbox3, "CENTER", 0, -20); 
-	popup.checkbox4.checkbox4text:SetPoint("LEFT", popup.checkbox4, 25, 0, "RIGHT")
-	
-	popup:SetHeight(160)
-end
-
-function PileSeller:CreateCunstomStaticPopup(text)
-	local confirmer = CreateFrame("Frame", "PS_TOGGLE_TRACKING", UIParent, "InsetFrameTemplate3")
-	confirmer.Bg:SetTexture([[Interface\DialogFrame\UI-DialogBox-Background]])
-	confirmer:SetPoint("CENTER", 0, 0)
-	confirmer:SetSize(150, 150)
-	--confirmer:Show()
+		local sub = checkboxes[i].sub and X + 20 or X
+		popup["checkbox" .. i]:SetPoint("CENTER", popup, "LEFT", sub, Y)
+		popup["checkbox" .. i].lbl:SetPoint("LEFT", popup["checkbox" .. i], 25, 0, "RIGHT")
+		Y = Y - 20
+	end
+	local height = 20 * #checkboxes + 80
+	popup:SetHeight(height)
 end
 
 --- Function to write all the contents of a scroll frame
@@ -380,18 +380,29 @@ end
 	--- ui = UIConfig
 --- output: none
 function HideAllFromConfig(ui)
+	
 	-- By doing this I can find any other item in the frame
 	-- Now I just hide all the things that I don't need
-	local children = { ui:GetChildren() }
-	for i=1, #children do
-		local name = children[i]:GetName()
-		local kid = 
-			name == "PileSeller_ConfigFrame_CloseButton" or 
-			name == "PileSeller_ConfigFrame_SwitchButton" or 
-			name == "PileSeller_ConfigFrame_ToggleTracking" or 
-			name == "PileSeller_ConfigFrame_TutorialButton" or
-			(children[i]:GetName() == "PileSeller_ConfigFrame_ItemInfos" and not children[i]:IsVisible()) 
-		if not kid then children[i]:Hide() end
+	if ui:GetName():find("StaticPopup") then
+		local children = { ui:GetChildren() }
+		for i = 1, #children do
+			local name = children[i]:GetName()
+			if name:find("popupCheckbox") then
+				children[i]:Hide()
+			end
+		end
+	else
+		local children = { ui:GetChildren() }
+		for i=1, #children do
+			local name = children[i]:GetName()
+			local kid = 
+				name == "PileSeller_ConfigFrame_CloseButton" or 
+				name == "PileSeller_ConfigFrame_SwitchButton" or 
+				name == "PileSeller_ConfigFrame_ToggleTracking" or 
+				name == "PileSeller_ConfigFrame_TutorialButton" or
+				(children[i]:GetName() == "PileSeller_ConfigFrame_ItemInfos" and not children[i]:IsVisible()) 
+			if not kid then children[i]:Hide() end
+		end
 	end
 end
 

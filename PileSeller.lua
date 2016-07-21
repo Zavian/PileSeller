@@ -353,7 +353,7 @@ function PileSeller:SellJunk()
 	end
 end
 
-function PileSeller:ToggleTracking(set)
+function PileSeller:ToggleTracking(set, keepTier, keepCraftingReagent, keepBoes, keepTrasmogsNotOwned, keepTrasmogs)
 	if set then 
 		if not psSettings["trackSetting"] then
 			psSettings["trackSetting"] = true; print("|cFF" .. PileSeller.color .. "Pile|rSeller: |cFF00FF00Tracking enabled.|r")
@@ -374,6 +374,13 @@ function PileSeller:ToggleTracking(set)
 		end
 	end
 
+	if keepTier ~= nil then
+		psSettings["keepTier"] = keepTier
+		psSettings["keepCraftingReagent"] = keepCraftingReagent
+		psSettings["keepBoes"] = keepBoes
+		psSettings["keepTrasmogsNotOwned"] = keepTrasmogsNotOwned
+		psSettings["keepTrasmogs"] = keepTrasmogs
+	end
 end
 
 function psEvents:ZONE_CHANGED_NEW_AREA(...)
@@ -568,15 +575,11 @@ end
 
 function PileSeller:KeepItem(id)
 	local keepTier = psSettings["keepTier"] and PileSeller:IsToken(id)
-	print(keepTier)
 	local keepBoE = psSettings["keepBoes"] and PileSeller:IsBoE(id)
-	print(keepBoE)
 	--local keepTrasmog = ( psSettings["keepTrasmogs"] and PileSeller:CanTransmog(id) ) and keepBoE
 	--local keepArtifactPower = psSettings["keepArtifactPower"] and PileSeller:IsArtifact(id, true)
 	local keepCraftingReagent = psSettings["keepCraftingReagents"] and PileSeller:IsCraftingReagent(id)
-	print(keepCraftingReagent)
 	local keepSaved = PileSeller:isSaved(id)
-	print(keepSaved)
 
 	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower
 end

@@ -106,6 +106,7 @@ PileSeller.settings = {
         sub = false,
         f = function()
             --PileSeller:PrintTable(PileSeller.UIConfig["keepBoes"].lbl)
+            psSettings["keepBoes"] = PileSeller.UIConfig["keepBoes"]:GetChecked()
             ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogs", PileSeller.UIConfig["keepBoes"]:GetChecked())
             ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogsNotOwned", PileSeller.UIConfig["keepBoes"]:GetChecked())
         end
