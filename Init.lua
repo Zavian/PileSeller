@@ -1,6 +1,6 @@
 -- Initialization file
 
-_G.PileSeller = { __addonversion = "2.0.3" }
+_G.PileSeller = { __addonversion = "2.0.3a" }
 local PileSeller = _G.PileSeller
 PileSeller.color = "6cafcc"
 PileSeller.wishToTrack = "Do you wish to track the items in this run?"

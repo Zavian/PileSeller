@@ -98,14 +98,6 @@ end
 --- outbut: none
 function PileSeller:PopulateList(list, items, width, literal, drops)
 	if not width then width = 258 end
-	if items == psIgnoredZones then
-		print("received: ")
-		print("list = " .. list:GetName())
-		print("items = psIgnoredZones")
-		print("width = " .. width)
-		print(literal)
-		print(drops)
-	end
 	PileSeller:ClearAllButtons(list)
 	PileSeller:debugprint(list:GetName() .. " populating")
 	if not literal then
