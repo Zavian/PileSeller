@@ -98,6 +98,14 @@ end
 --- outbut: none
 function PileSeller:PopulateList(list, items, width, literal, drops)
 	if not width then width = 258 end
+	if items == psIgnoredZones then
+		print("received: ")
+		print("list = " .. list:GetName())
+		print("items = psIgnoredZones")
+		print("width = " .. width)
+		print(literal)
+		print(drops)
+	end
 	PileSeller:ClearAllButtons(list)
 	PileSeller:debugprint(list:GetName() .. " populating")
 	if not literal then
@@ -186,7 +194,7 @@ function PileSeller:CreateScrollButton(parent, id, progress, width, height, zone
 				if IsShiftKeyDown() then
 					ChatEdit_InsertLink(l)
 				elseif IsControlKeyDown() then
-					DressUpItemLink(id)
+					DressUpItemLink(l)
 				end				
 			end)
 		else
@@ -195,11 +203,13 @@ function PileSeller:CreateScrollButton(parent, id, progress, width, height, zone
 				if IsShiftKeyDown() then
 					ChatEdit_InsertLink(l)
 				elseif IsControlKeyDown() then
-					DressUpItemLink(id)
+					DressUpItemLink(l)
 				end
 				if button == "RightButton" then
 					PileSeller:debugprint("banana")
 					PileSeller:removeItem(l, psItems, parent)
+					_G["PileSeller_SellingBoxFrame"]:Hide()
+					_G["PileSeller_SellingBoxFrame"]:Show()
 				end
 			end)
 		end
@@ -580,7 +590,7 @@ function PileSeller:SetItemInfo(parent, item)
 	parent.itemID:SetText("|cFF".. PileSeller.color .. "Item ID:|r " .. id)
 
 	parent.tryIt:SetScript("OnClick", function()
-		DressUpItemLink(id)
+		DressUpItemLink(l)
 	end
 	)
 	
@@ -843,7 +853,7 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.ignoredScroll:SetPoint("BOTTOM", UIConfig.toSellScroll, 0, -65)
 		UIConfig.ignoredScroll:SetParent(UIConfig)		
 	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true) end
-	PileSeller:PopulateList(UIConfig.ignoredScroll, psIgnoredZones, 258)
+	PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 
 	-- Creating the add item bar
 	if not UIConfig.txtAddIgnoreZone then 
@@ -886,11 +896,11 @@ function CreateIgnoreZone(UIConfig)
 			local t = UIConfig.txtAddIgnoreZone:GetText()
 			if s then				
 				tinsert(psIgnoredZones, t)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			else
 				local index = PileSeller:IsIgnored(t)
 				tremove(psIgnoredZones, index)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			end
 			UIConfig.txtAddIgnoreZone:SetText("")
 		end
@@ -929,11 +939,11 @@ function CreateIgnoreZone(UIConfig)
 			local t = UIConfig.txtAddIgnoreZone:GetText()
 			if s then				
 				tinsert(psIgnoredZones, t)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			else
 				local index = PileSeller:IsIgnored(t)
 				tremove(psIgnoredZones, index)
-				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, true, 258)
+				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			end
 			UIConfig.txtAddIgnoreZone:SetText("")
 		end
@@ -986,8 +996,10 @@ end
 
 function PileSeller:UpdateUIInfo()
 	local p = GetSell()
-	PileSeller.UIConfig.toSellScroll.lblTitle.lblDesc:SetText("Items to sell: " .. #psItems .. "|nProfit: " .. p)
-	PileSeller.UIConfig.savedScroll.lblTitle.lblDesc:SetText("Items saved: " .. #psItemsSaved .. "|nItems found: " .. PileSeller:tablelength(psItemsSavedFound))
+	if PileSeller.UIConfig.toSellScroll and PileSeller.UIConfig.savedScroll then
+		PileSeller.UIConfig.toSellScroll.lblTitle.lblDesc:SetText("Items to sell: " .. #psItems .. "|nProfit: " .. p)
+		PileSeller.UIConfig.savedScroll.lblTitle.lblDesc:SetText("Items saved: " .. #psItemsSaved .. "|nItems found: " .. PileSeller:tablelength(psItemsSavedFound))
+	end
 end
 
 function PileSeller:PileSeller_MinimapButton_Reposition()

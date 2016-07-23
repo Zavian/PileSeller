@@ -65,8 +65,10 @@ function psEvents:CHAT_MSG_LOOT(...)
 				if not PileSeller:KeepItem(item) then
 					if PileSeller.UIConfig then
 						if PileSeller.UIConfig:IsShown() then
-							PileSeller:addItem(item, psItems, PileSeller.UIConfig.toSellScroll.content)
-							PileSeller:UpdateUIInfo()
+							if  PileSeller.UIConfig.toSellScroll ~= nil then
+								PileSeller:addItem(item, psItems, PileSeller.UIConfig.toSellScroll.content)
+								PileSeller:UpdateUIInfo()
+							end
 						else tinsert(psItems, item) end
 					else tinsert(psItems, item) end
 				end
@@ -262,7 +264,9 @@ local function onUpdate(self, elapsed)
 						PileSeller:SellJunk()
 					end
 					if PileSeller.UIConfig then
-						PileSeller:PopulateList(PileSeller.UIConfig.toSellScroll.content, psItems)
+						if PileSeller.UIConfig.toSellScroll then
+							PileSeller:PopulateList(PileSeller.UIConfig.toSellScroll.content, psItems)
+						end
 					end
 					------------------------------
 					------------------------------
@@ -694,7 +698,7 @@ function SlashCmdList.PILESELLER(msg, editbox)
 				if string.match(s, "item[%-?%d:]+") then
 					PileSeller:addItem(s, psItemsSaved)
 					PileSeller:Print(s .. " added to the saved list.")
-					if PileSeller.UIConfig then
+					if PileSeller.UIConfig and PileSeller.UIConfig.savedScroll then
 						PileSeller:PopulateList(PileSeller.UIConfig.savedScroll.content, psItemsSaved)
 					end
 				else PileSeller:Print("Error") end
@@ -705,7 +709,7 @@ function SlashCmdList.PILESELLER(msg, editbox)
 				if string.match(s, "item[%-?%d:]+") then
 					PileSeller:removeItem(s, psItemsSaved, nil)
 					PileSeller:Print(s .. " removed from the saved list.")
-					if PileSeller.UIConfig then
+					if PileSeller.UIConfig and PileSeller.UIConfig.savedScroll then
 						PileSeller:PopulateList(PileSeller.UIConfig.savedScroll.content, psItemsSaved)
 					end
 				else PileSeller:Print("Error") end
@@ -717,7 +721,9 @@ function SlashCmdList.PILESELLER(msg, editbox)
 					PileSeller:removeItem(s, psItems, nil)
 					PileSeller:Print(s .. " removed from the selling list.")
 					if PileSeller.UIConfig then
-						PileSeller:PopulateList(PileSeller.UIConfig.toSellScroll.content, psItems)
+						if PileSeller.UIConfig.toSellScroll then
+							PileSeller:PopulateList(PileSeller.UIConfig.toSellScroll.content, psItems)
+						end
 					end
 				else PileSeller:Print("Error") end
 			end
@@ -734,7 +740,7 @@ function SlashCmdList.PILESELLER(msg, editbox)
 				tremove(psIgnoredZones, PileSeller:IsIgnored(s)) 
 				PileSeller:Print(s .. " removed to the ignored zones list.")
 			end
-			if PileSeller.UIConfig then
+			if PileSeller.UIConfig and PileSeller.UIConfig.ignoredScroll then
 				PileSeller:PopulateList(PileSeller.UIConfig.ignoredScroll.content, psIgnoredZones, true)
 			end
 		elseif msg == "debug" then
