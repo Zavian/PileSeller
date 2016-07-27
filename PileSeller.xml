@@ -9,8 +9,8 @@
 			<Anchor point="TOPLEFT"/>
 		</Anchors>
 		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture name="PileSeller_MinimapButton_Icon" file="Interface\Moneyframe\UI-SilverIcon">
+			<Layer level="OVERLAY">
+				<Texture name="PileSeller_MinimapButton_Icon" file="Interface\Addons\PileSeller\media\logo">
 					<Size>
 						<AbsDimension x="21" y="21"/>
 					</Size>
@@ -22,19 +22,6 @@
 						</Anchor>
 					</Anchors>
 				</Texture>
-			</Layer>
-			<Layer level="OVERLAY">
-				<FontString name="$parentFontString" font="Fonts\FRIZQT__.TTF" text="PS" justifyH="LEFT" justifyV="TOP" outline="THICK">
-					<Color r=".99" g=".82" b=".07" a="1"/>
-					<FontHeight val="10"/>
-					<Anchors>
-						<Anchor point="CENTER" relativeTo="$parent" x="1" y="-1"/>
-					</Anchors>
-					<!-- <Shadow>
-						<Offset x="2" y="2" />
-						<Color r="0" g="0" b="0"/>
-					</Shadow> -->
-				</FontString>
 				<Texture file="Interface\Minimap\MiniMap-TrackingBorder">
 					<Size>
 						<AbsDimension x="56" y="56"/>

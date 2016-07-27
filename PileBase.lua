@@ -578,6 +578,7 @@ end
 function PileSeller:LoadArtifacts()
     local returner = 0
     local playerClass = select(2, UnitClass("player"))
+    if playerClass == "DEATHKNIGHT" then playerClass = "DK" end
     for i = 1, #artifacts[playerClass:lower()] do
         if i == GetSpecialization() then returner = artifacts[playerClass:lower()][i] end
         GetItemInfo(artifacts[playerClass:lower()][i].id)

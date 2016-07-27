@@ -302,11 +302,11 @@ function PileSeller:ShowConfig(args)
 			if t == "Items" then
 				t = "Config"
 				PileSeller:CreateItemsSection(PileSeller.UIConfig)
-				 PileSeller.UIConfig.tutorial:Show()
+				PileSeller.UIConfig.tutorial:Show()
 			elseif t == "Config" then
 				t = "Items"
 				CreateConfigSection(PileSeller.UIConfig)
-				 PileSeller.UIConfig.tutorial:Hide()
+				PileSeller.UIConfig.tutorial:Hide()
 			end
 			PileSeller.UIConfig.switch:SetText(t)
 		end
@@ -314,12 +314,21 @@ function PileSeller:ShowConfig(args)
 		
 		-- Tutorial Button
 		PileSeller.UIConfig.tutorial = CreateFrame("Button", "PileSeller_ConfigFrame_TutorialButton", PileSeller.UIConfig)
-		PileSeller.UIConfig.tutorial:SetSize(50, 50)
+		PileSeller.UIConfig.tutorial:SetSize(75, 75)
 		PileSeller.UIConfig.tutorial:SetPoint("BOTTOMRIGHT", PileSeller.UIConfig, "BOTTOMRIGHT", 15, -15)
 		PileSeller.UIConfig.tutorial:SetNormalTexture("Interface\\COMMON\\help-i")
 		PileSeller.UIConfig.tutorial:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+
+		if not psTutorialDone then
+			PileSeller:CreateRing(PileSeller.UIConfig.tutorial)
+		end
+
 		PileSeller.UIConfig.tutorial:SetScript("OnClick", function()
 				PileSeller:ToggleTutorial(PileSeller.UIConfig)
+				psTutorialDone = true
+				if PileSeller.UIConfig.tutorial.glow then
+					PileSeller.UIConfig.tutorial.glow:Hide()
+				end
 			end
 		)
 		
@@ -413,7 +422,7 @@ function CreateItemInfos(UIConfig)
 	HideAllFromConfig(UIConfig)
 
 	UIConfig.itemInfos = CreateFrame("Frame", "PileSeller_ConfigFrame_ItemInfos", UIConfig, "ThinBorderTemplate")
-	UIConfig.itemInfos:SetSize(200, 300)
+	UIConfig.itemInfos:SetSize(225, 300)
 	UIConfig.itemInfos:SetPoint("LEFT", UIConfig, -UIConfig.itemInfos:GetWidth() + 10, 0)
 	UIConfig.itemInfos.bg = UIConfig.itemInfos:CreateTexture()
 	UIConfig.itemInfos.bg:SetAllPoints(UIConfig.itemInfos)
@@ -443,7 +452,7 @@ function CreateItemInfos(UIConfig)
 			UIConfig.itemInfos.item[infos[i].name] = UIConfig.itemInfos.item:CreateFontString(nil, "OVERLAY", infos[i].inherits)
 			UIConfig.itemInfos.item[infos[i].name]:SetPoint("BOTTOM", UIConfig.itemInfos.item, 0, -20 - (i*20))
 			UIConfig.itemInfos.item[infos[i].name]:SetText("iteminfo." .. i)
-			UIConfig.itemInfos.item[infos[i].name]:SetSize(175, 40)
+			UIConfig.itemInfos.item[infos[i].name]:SetSize(200, 40)
 		else
 			UIConfig.itemInfos.item[infos[i].name] = CreateFrame("Button", nil, UIConfig.itemInfos.item, "GameMenuButtonTemplate")
 			UIConfig.itemInfos.item[infos[i].name]:SetPoint("BOTTOM", UIConfig.itemInfos.item, 0, -20 - (i*18))
@@ -686,9 +695,9 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder)
 	f:SetScript("OnMouseWheel", function(self, delta) 
 		local vertical = f:GetVerticalScroll()
 		local max = f:GetVerticalScrollRange()
-		local step = (max / 21 * 5) -- how much i should move. 21 = height of the button. 5 = speed
+		--local step = ((max / 21) * 5) -- how much i should move. 21 = height of the button. 5 = speed
 		_G[name .. "ScrollBar"]:SetMinMaxValues(0, max)
-		local move = step * -delta
+		local move = 13 * -delta
 		if vertical + move > 0 and vertical + move < max then
 			f:SetVerticalScroll(vertical + move)
 		elseif vertical + move > max then
@@ -790,7 +799,7 @@ function CreateSavedSection(UIConfig)
 		UIConfig.btnAddSavedItem:SetText("+")
 		UIConfig.btnAddSavedItem:SetScript("OnClick", function()
 			local t = UIConfig.txtAddSavedItem:GetText()
-			if t then
+			if t and #t > 0 then
 				if string.match(t, "item[%-?%d:]+") then
 					PileSeller:addItem(t, psItemsSaved, UIConfig.savedScroll.content)
 				else
@@ -806,6 +815,9 @@ function CreateSavedSection(UIConfig)
 					UIConfig.txtAddSavedItem:SetText("")
 					PileSellser:UpdateUIInfo()
 				end
+			else if t and #t == 0 then
+				UIConfig.txtAddSavedItem:SetText("You have to input an ID or a link")
+			end
 			end
 		end
 		)

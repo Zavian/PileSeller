@@ -13,6 +13,45 @@ local tutorials = {}
 --    end
 --end
 
+local negative = false
+local glow_timer = 0
+local glows_done = 0
+local glowing = true
+function PileSeller:CreateRing(button)
+    button.glow = PileSeller.UIConfig.tutorial:CreateTexture()
+    button.glow:SetTexture([[Interface\Garrison\Garr_TimerFill]])
+    
+    button.glow:SetVertexColor(1,1,1,0)
+    button.glow:SetSize(65,65)
+    button.glow:SetPoint("CENTER", PileSeller.UIConfig.tutorial, "CENTER")
+    button:SetScript("OnUpdate", function(self, elapsed)
+        glow_timer = glow_timer + elapsed
+        if glowing then
+            if not psTutorialDone and PileSeller.UIConfig:IsVisible() and button.glow:IsVisible() then
+                if glow_timer < 1 then
+                    if negative then
+                        button.glow:SetVertexColor(1, 1, 1, 1 - glow_timer)
+                    else button.glow:SetVertexColor(1, 1, 1, glow_timer) end
+                else
+                    if not negative and glow_timer > 2 then
+                        glow_timer = 0
+                        if negative then negative = false else negative = true end
+                    elseif negative and glow_timer > 1 then
+                        glow_timer = 0
+                        if negative then negative = false else negative = true end
+                    end 
+                end
+            end
+        else 
+            if glow_timer > 120 then
+                glowing = true
+                glow_timer = 0
+            end
+        end
+        end
+    )
+end 
+
 function PileSeller:ToggleTutorial(ui)
     if not ui.TutorialFrame then 
         CreateTeacher(ui)
@@ -22,98 +61,98 @@ function PileSeller:ToggleTutorial(ui)
                 text = "In this short tutorial I will teach you the basics of the UI.",
             },
             [1] = {
+                title = "Start tracking!",
+                text = "By clicking here you can start manually a tracking session.\nThis will also start when you will enter alone in any instanced content.",
+                glow = ui.toggleTracking,
+            },
+            [2] = {
+                title = "Selling",
+                text = "Whenever you will open a merchant I will sell all the items tracked during the session.",
+            },
+            [3] = {
+                title = "Selling",
+                text = "The sell process takes a little while. Please be patient and wait 'til the border of the selling bar becomes white (like it is now).",
+                white = true,
+            },
+            [4] = {
+                title = "|cFF" .. PileSeller.color .. "Pile|rSeller",
+                text = "Sometimes the game will glitch and it won't sell some items.\nDon't worry tho, it won't be too much.",
+            },
+            [5] = {
+                title = "Settings",
+                text = "Remember that you will always be able to access the settings by clicking this button!",
+                glow = ui.switch,
+            },
+            [6] = {
                 title = "Saved items",
                 text = "This is where you can store the items that you want to keep.\nFor example you can add mounts or transmog items.",
                 glow = ui.savedScroll.lblTitle,
             },
-            [2] = {
+            [7] = {
                 title = "Saved items",
                 text = "Here you will be able to see a list of the saved items.\nRemember that you can click on them to gather more informations.",
                 glow = ui.savedScroll.content,
                 
             },
-            [3] = {
+            [8] = {
                 title = "Saved items",
                 text = "Here you can add items.\nYou can link them from chat, from the dungeon journal or even by typing the item's ID",
                 glow = ui.btnAddSavedItem,
             },
-            [4] = {
+            [8] = {
                 title = "Items to sell",
                 text = "This is where you will find a list of all the items you will sell.",
                 glow = ui.toSellScroll.lblTitle,
             },
-            [5] = {
+            [9] = {
                 title = "Items to sell",
                 text = "Like the saved items list here you will be able to click any item.",
                 glow = ui.toSellScroll.content,
             },
-            [6] = {
+            [10] = {
                 title = "Specific item",
                 text = "By clicking an item in one of the lists something like this will appear.",
                 glow = ui.itemInfos,
                 showItemInfos = true,
             },
-            [7] = {
+            [11] = {
                 title = "Specific item",
                 text = "By clicking this button (which will appear just for the saved items) you can set an alert whenever it will drop.",
                 glow = ui.itemInfos.item.toggleAlert,
                 showItemInfos = true,
             },
-            [8] = {
+            [12] = {
                 title = "Specific item",
                 text = "By clicking this button you will be able to preview the item (if possible). Remember that you can do that also by control-clicking from the list.",
                 glow = ui.itemInfos.item.tryIt,
                 showItemInfos = true,
             },
-            [9] = {
+            [13] = {
                 title = "Specific item",
                 text = "By clicking this button you will remove the clicked item from its list (both the saved items and the items to sell).",
                 glow = ui.itemInfos.item.removeFromList,
                 showItemInfos = true,
             },
-            [10] = {
+            [14] = {
                 title = "Ignoring",
                 text = "Here you can ignore certain zones such as an instance or a region.",
                 glow = ui.ignoredScroll.lblTitle
             },
-            [11] = {
+            [15] = {
                 title = "Ignoring",
                 text = "By typing the name of the zone you will be able to either add or remove an element from the list.",
                 glow = ui.btnAddIgnoreZone
             },
-            [12] = {
+            [16] = {
                 title = "Ignoring",
                 text = "For example if you are ignoring Firelands all you'll have to do is to write Firelands into the text box and you will remove it.",
                 glow = ui.btnAddIgnoreZone
             },
-            [13] = {
-                title = "Start tracking!",
-                text = "By clicking here you can start manually a tracking session.\nThis will also start when you will enter alone in any instanced content.",
-                glow = ui.toggleTracking,
-            },
-            [14] = {
-                title = "Settings",
-                text = "Remember that you will always be able to access the settings by clicking this button!",
-                glow = ui.switch,
-            },
-            [15] = {
-                title = "Selling",
-                text = "Whenever you will open a merchant I will sell all the items tracked during the session.",
-            },
-            [16] = {
-                title = "Selling",
-                text = "The sell process takes a little while. Please be patient and wait 'til the border of the selling bar becomes white (like is now).",
-                white = true,
-            },
             [17] = {
-                title = "|cFF" .. PileSeller.color .. "Pile|rSeller",
-                text = "Sometimes the game will glitch and it won't sell some items.\nDon't worry tho, it won't be too much.",
-            },
-            [18] = {
                 title = "|cFF" .. PileSeller.color .. "Pile|rSeller",
                 text = "Lastly you you can type in the chat /pileseller or /ps for some easy commands.\nAnd now what are you waiting for? Go farm something!",
             },
-            [19] = {
+            [18] = {
                 title = "Contact",
                 text = "Feel free to contact me via the curse page or wowinterface or even ingame to Zavian-The Maelstrom, and please report any bugs in either of comment sections"
             }
@@ -166,7 +205,7 @@ end
 
 function CreateTeacher(ui)    
     ui.TutorialFrame = CreateFrame("Frame", nil, ui, "GlowBoxTemplate")
-    ui.TutorialFrame:SetSize(200, 150)
+    ui.TutorialFrame:SetSize(275, 150)
     ui.TutorialFrame:SetFrameStrata("DIALOG")
     ui.TutorialFrame:SetParent(ui)
     --ui.TutorialFrame:SetScript("OnShow", function() ClickAll(true, ui) end)
@@ -210,7 +249,7 @@ function CreateTeacher(ui)
     
     ui.TutorialFrame.text = ui.TutorialFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     ui.TutorialFrame.text:SetPoint("TOPLEFT", ui.TutorialFrame, 10, -30)
-    ui.TutorialFrame.text:SetSize(150, 75)
+    ui.TutorialFrame.text:SetSize( ui.TutorialFrame:GetWidth() - 15 , ui.TutorialFrame:GetHeight() - 15)
     ui.TutorialFrame.text:SetJustifyH("LEFT")
     ui.TutorialFrame.text:SetJustifyV("TOP")
     ui.TutorialFrame:Hide()

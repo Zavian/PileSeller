@@ -1,12 +1,14 @@
 ## Interface: 70000
 ## Title : |cFF6cafccPile|rSeller
-## Version: 2.0.3a
+## Version: 2.0.4
 ## Notes: Simple seller based on sessions. /pileseller
 ## Author: Zavian
 ## Email: zavian.mail@gmail.com
 ## DefaultState: enabled
 ## SavedVariablesPerCharacter: psIgnoredZones, psItems, psItemsSaved, psItemsSavedFound, psItemsAlert, psSettings
+## SavedVariables: psTutorialDone
 
+embeds.xml
 Init.lua
 PileSeller.xml
 PileSeller.lua
@@ -18,3 +20,4 @@ MinimapButton.lua
 PileBase.lua
 PileAlert.lua
 PileSources.lua
+Broker.lua

@@ -1,10 +1,14 @@
 -- Initialization file
 
-_G.PileSeller = { __addonversion = "2.0.3a" }
+
+_G.PileSeller = { __addonversion = "2.0.4" }
 local PileSeller = _G.PileSeller
+
+
 PileSeller.color = "6cafcc"
 PileSeller.wishToTrack = "Do you wish to track the items in this run?"
 
+-- Debug tools
 function PileSeller:tablelength(T)
   local count = 0
   for _ in pairs(T) do count = count + 1 end
@@ -12,6 +16,8 @@ function PileSeller:tablelength(T)
 end
 
 GetItemInfo(19019)
+
+
 
 function PileSeller:PrintTable(t, indent, done)
 	--print ( string.format ('PrintTable type %s', type(keys)) )
@@ -50,6 +56,7 @@ function PileSeller:PrintTable(t, indent, done)
         end
     end
 end
+--------------
 
 
 
@@ -177,6 +184,7 @@ else
 end
 if not psItemsAlert then psItemsAlert = {} end
 if not psIgnoredZones then psIgnoredZones = {} end
+if psTutorialDone == nil then psTutorialDone = false end
 
 function PileSeller:Reset()
 	psItems = nil

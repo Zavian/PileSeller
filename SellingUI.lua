@@ -5,7 +5,7 @@ function PileSeller:MakeMovable(frame)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
- end
+end
 
 local psSellingFrame = CreateFrame("FRAME", "PileSeller_SellingFrame", UIParent, "ThinBorderTemplate")
 PileSeller:MakeMovable(psSellingFrame)
