@@ -1,6 +1,6 @@
 ## Interface: 70000
 ## Title : |cFF6cafccPile|rSeller
-## Version: 2.0.4
+## Version: 2.1.0-TESTING
 ## Notes: Simple seller based on sessions. /pileseller
 ## Author: Zavian
 ## Email: zavian.mail@gmail.com

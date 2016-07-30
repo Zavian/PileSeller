@@ -196,6 +196,9 @@ local Index_Offset = 0
 local broke = false
 
 local function onUpdate(self, elapsed)
+	if psSettings["speedTweaker"] then
+		Update_Interval = psSettings["speedTweakerValue"]	
+	end
 	timer = timer + elapsed
 	if PileSeller.selling then
 		if not PileSeller.sFrame:IsVisible() then 
@@ -401,8 +404,10 @@ function psEvents:ZONE_CHANGED_NEW_AREA(...)
 	local g = IsInGroup()
 	if t and not garrison then
 		if not g then
-			if not psSettings["trackSetting"] then
+			if not psSettings["trackSetting"] and not psSettings["autoActivate"] then
 				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
+			elseif psSettings["autoActivate"] and not psSettings["trackSetting"] then
+				PileSeller:ToggleTracking(true)
 			end
 		else 
 			if psSettings["trackSetting"] and psSettings["showAlertSetting"] then
@@ -448,8 +453,10 @@ function psEvents:RAID_INSTANCE_WELCOME(...)
 	local t = string.match(type, CHAT_MSG_RAID:lower()) or string.match(type, CHAT_MSG_PARTY:lower())
 	if t then
 		if not g then
-			if not psSettings["trackSetting"] then
+			if not psSettings["trackSetting"] and not psSettings["showAlertSetting"] then
 				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
+			elseif not psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+				PileSeller:ToggleTracking(true)
 			end
 		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
@@ -473,7 +480,16 @@ function psEvents:GOSSIP_SHOW(...) canTrack = false; end
 function psEvents:GOSSIP_CLOSED(...) canTrack = true; end
 function psEvents:QUEST_DETAIL(...) canTrack = false; end
 function psEvents:QUEST_ACCEPTED(...) canTrack = true; end
-function psEvents:MERCHANT_CLOSED(...) canTrack = true; end
+function psEvents:MERCHANT_CLOSED(...) 
+	canTrack = true
+	if psSettings["autoCloseSellingBox"] then
+		if PileSeller.sFrame then
+			if PileSeller.sFrame:IsVisible() then
+				PileSeller.sFrame:Hide()
+			end
+		end
+	end
+end
 function psEvents:MAIL_SHOW(...) canTrack = false end
 function psEvents:MAIL_CLOSED(...) canTrack = true end
 

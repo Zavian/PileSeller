@@ -664,16 +664,17 @@ function PileSeller:CreateItemsSection(UIConfig)
 	CreateIgnoreZone(UIConfig)
 end
 
-function PileSeller:CreateScroll(parent, name, width, height, noBorder)
+function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackground)
 	local f = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
 	f:SetSize(width, height)
 	f:SetClampedToScreen(true)
 	f:EnableMouseWheel(true)
-
-	local tex = f:CreateTexture(nil, "BACKGROUND")
-	tex:SetTexture([[Interface\Buttons\WHITE8X8]])
-	tex:SetVertexColor(.27,.27,.27,1)
-	tex:SetAllPoints()
+	if not noBackground then
+		local tex = f:CreateTexture(nil, "BACKGROUND")
+		tex:SetTexture([[Interface\Buttons\WHITE8X8]])
+		tex:SetVertexColor(.27,.27,.27,1)
+		tex:SetAllPoints()
+	end
 	if not noBorder then
 		f:SetBackdrop({
 			edgeFile = [[Interface\Buttons\WHITE8X8]], 
@@ -961,10 +962,68 @@ end
 
 function CreateConfigSection(UIConfig)
 	HideAllFromConfig(UIConfig)
-	local y = -30
+	UIConfig.configScroller = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_ConfigScroller", UIConfig:GetWidth() - 30, UIConfig:GetHeight() - 40, true, true)
+	UIConfig.configScroller:SetPoint("CENTER", UIConfig, "CENTER", -15, -18)
+	local parent = UIConfig.configScroller.content;
+	local y = 0
 	for i = 1, #PileSeller.settings do
-		PileSeller:CreateCheckButton(PileSeller.settings[i], UIConfig, y)
+		PileSeller:CreateCheckButton(PileSeller.settings[i], parent, y)
 		y = y - 25
+		if PileSeller.settings[i].name == "speedTweaker" then
+			if not psSettings["speedTweakerValue"] then
+				psSettings["speedTweakerValue"] = 1.5
+			end 
+			parent.speedTweaker.questionButton = CreateFrame("Button", "PileSeller_ConfigFrame_ConfigScroller_SpeedTweaker_Tutorial", parent.speedTweaker)
+			parent.speedTweaker.questionButton:SetNormalTexture([[Interface\BUTTONS\UI-MicroButton-Help-Up]])
+			parent.speedTweaker.questionButton:SetPushedTexture([[Interface\BUTTONS\UI-MicroButton-Help-Up]])
+			parent.speedTweaker.questionButton:SetHighlightTexture([[Interface\Buttons\UI-MicroButton-Hilight]], "ADD")
+			parent.speedTweaker.questionButton:SetScript("OnEnter", function(self)
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+				GameTooltip:SetSize(200, 200)
+				GameTooltip:AddLine("|cFFFFFFFFSpeed Tweaking|r")
+				GameTooltip:AddLine("This option defines how fast the selling process is.")
+				GameTooltip:AddLine("This is an advanced option and, being lower than the default value (1.5) can have unintended behavior (such as skipping items or entire bags) and is especially bound to your latency.", nil, nil, nil, true)
+				GameTooltip:Show()
+			end)
+
+			parent.speedTweaker.questionButton:SetScript("OnLeave", function()
+				GameTooltip:Hide()
+			end)
+			
+			parent.speedTweaker.questionButton:SetPoint("RIGHT", parent.speedTweaker.lbl, -150, 10)
+			parent.speedTweaker.questionButton:SetSize(30, 50)
+
+			y = y - 25
+			parent.speedTweakerSlider = CreateFrame("Slider", "PileSeller_ConfigFrame_ConfigScroller_SpeedTweakerSlider", parent, "OptionsSliderTemplate")
+			parent.speedTweakerSlider:SetPoint("TOPLEFT", parent, 80, y + 15)
+			parent.speedTweakerSlider:SetOrientation("HORIZONTAL")
+			parent.speedTweakerSlider:SetMinMaxValues(0, 2.0)
+			parent.speedTweakerSlider:SetValue(1.5)
+			parent.speedTweakerSlider:SetValueStep(.5)
+			parent.speedTweakerSlider:SetObeyStepOnDrag(true)
+			parent.speedTweakerSlider:SetSize(100, 20)
+			parent.speedTweakerSlider.value = parent.speedTweakerSlider:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			parent.speedTweakerSlider.value:SetPoint("CENTER", parent.speedTweakerSlider, 0, -15)
+			parent.speedTweakerSlider.value:SetText("1.5")
+
+
+
+            parent.speedTweakerSlider:SetEnabled(psSettings["speedTweaker"])
+            if psSettings["speedTweaker"] then
+                parent.speedTweakerSlider.value:SetTextColor(253/255, 209/255, 22/255,1)
+            else
+                parent.speedTweakerSlider.value:SetTextColor(153/255, 153/255, 153/255, 1)
+            end
+
+            parent.speedTweakerSlider.High:Hide()
+            parent.speedTweakerSlider.Low:Hide()
+			
+			parent.speedTweakerSlider:SetScript("OnValueChanged", function(self, value)
+				parent.speedTweakerSlider.value:SetText(value)
+				psSettings["speedTweakerValue"] = value
+			end)
+			y = y - 25
+		end
 	end
 end
 

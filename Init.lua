@@ -1,7 +1,7 @@
 -- Initialization file
 
 
-_G.PileSeller = { __addonversion = "2.0.4" }
+_G.PileSeller = { __addonversion = "2.1.0-TESTING" }
 local PileSeller = _G.PileSeller
 
 
@@ -63,91 +63,120 @@ end
 -- This will be used both into the creation of the checkboxes and on the init of the settings
 PileSeller.settings = {
     [1] = {
+        name = "autoActivate",
+        default = false,
+        text = "Auto activate tracking by entering a raid or instance alone.",
+        sub = false
+    },
+    [2] = {
+        name = "autoCloseSellingBox",
+        default = false,
+        text = "Auto close the item sold dialog when closing the vendor.",
+        sub = false
+    },
+    [3] = {
         name = "confSetting",
         default = true,
         text = "Show confirmation before selling the loot.",
         sub = false
     },
-    [2] = {
+    [4] = {
         name = "sellJunkSetting",
         default = true,
         text = "Auto sell junk.",
         sub = false
     },
-    [3] = {
+    [5] = {
         name = "repairSetting",
         default = false,
         text = "Auto repair gear.",
         sub = false,
         masterOf = "repairGuildSetting"
     },
-    [4] = {
+    [6] = {
         name = "repairGuildSetting",
         default = false,
         text = "Use guild funds.",
         sub = true,
         slaveOf = "repairSetting"
     },
-    [5] = {
+    [7] = {
         name = "showAlertSetting",
         default = true,
         text = "Always message me if tracking is on (|cFF00FF00Recommended|r).",
         sub = false,
     },
-    [6] = {
+    [8] = {
         name = "disableInGarrison",
         default = true,
         text = "Always disable tracking when entering in garrison.",
         sub = false,
     },    
-    [7] = {
+    [9] = {
         name = "keepTier",
         default = false,
         text = "Don't sell any tier tokens I can use.",
         sub = false
     },
-    [8] = {
+    [10] = {
         name = "keepBoes",
         default = false,
         text = "Don't sell any BoE (Bind on Equip).",
         sub = false,
         f = function()
             --PileSeller:PrintTable(PileSeller.UIConfig["keepBoes"].lbl)
-            psSettings["keepBoes"] = PileSeller.UIConfig["keepBoes"]:GetChecked()
+            psSettings["keepBoes"] = PileSeller.UIConfig.configScroller.content["keepBoes"]:GetChecked()
             ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogs", PileSeller.UIConfig["keepBoes"]:GetChecked())
             ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogsNotOwned", PileSeller.UIConfig["keepBoes"]:GetChecked())
         end
         --masterOf = ["keepTrasmogs", "keepTrasmogsNotOwned"]
     },
-    [9] = {
+    [11] = {
         name = "keepTrasmogsNotOwned",
         default = false,
         text = "Just keep the ones I don't already own.",
         sub = true,
         slaveOf = "keepBoes"
     },
-    [10] = {
+    [12] = {
         name = "keepTrasmogs",
         default = false,
         text = "Keep only the ones I can transmog.",
         sub = true,
         slaveOf = "keepBoes"
     },    
-    [11] = {
+    [13] = {
         name = "keepCraftingReagents",
         default = false,
         text = "Don't sell any Crafting Reagent.",
         sub = false
     },
-    [12] = {
+    [14] = {
         name = "hideMinimapButton",
         default = false,
         text = "Hide minimap button. (You can type /pileseller or /ps to access the addon)",
         sub = false,
         f = function()
-            local b = PileSeller.UIConfig.hideMinimapButton:GetChecked()
+            local b = PileSeller.UIConfig.configScroller.content.hideMinimapButton:GetChecked()
             psSettings["hideMinimapButton"] = b
             PileSeller:HideMinimapButton(b)
+        end
+    },
+    [15] = {
+        name = "speedTweaker",
+        default = false,
+        text = "Tweak the speed while selling the items.",
+        sub = false,
+        f = function()
+            local b = PileSeller.UIConfig.configScroller.content.speedTweaker:GetChecked()
+            psSettings["speedTweaker"] = b
+            --PileSeller.UIConfig.configScroller.content.speedTweaker.questionButton:SetEnabled(b)
+            PileSeller.UIConfig.configScroller.content.speedTweakerSlider:SetEnabled(b)
+            if b then
+                PileSeller.UIConfig.configScroller.content.speedTweakerSlider.value:SetTextColor(253/255, 209/255, 22/255,1)
+            else
+                PileSeller.UIConfig.configScroller.content.speedTweakerSlider.value:SetTextColor(153/255, 153/255, 153/255, 1)
+            end
         end
     }
 }
