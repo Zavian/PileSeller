@@ -1,7 +1,7 @@
 -- Initialization file
 
 
-_G.PileSeller = { __addonversion = "2.1.1-TESTING" }
+_G.PileSeller = { __addonversion = "2.1.1" }
 local PileSeller = _G.PileSeller
 
 
