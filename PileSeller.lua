@@ -198,7 +198,7 @@ local broke = false
 local function onUpdate(self, elapsed)
 	if psSettings["speedTweaker"] then
 		Update_Interval = psSettings["speedTweakerValue"]	
-	end
+	else Update_Interval = 1.5 end
 	timer = timer + elapsed
 	if PileSeller.selling then
 		if not PileSeller.sFrame:IsVisible() then 
@@ -409,14 +409,16 @@ function psEvents:ZONE_CHANGED_NEW_AREA(...)
 			elseif psSettings["autoActivate"] and not psSettings["trackSetting"] then
 				PileSeller:ToggleTracking(true)
 			end
-		else 
-			if psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+		else
+			if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
+				PileSeller:ToggleTracking(false)
+			elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
 				  text = "Item tracking is active, do you wish to disable it?",
 				  button1 = "Yes",
 				  button2 = "No",
 				  OnAccept = function()
-					 PileSeller:ToggleTracking(false)
+					PileSeller:ToggleTracking(false)
 				  end,
 				  timeout = 0,
 				  whileDead = false,
@@ -427,7 +429,9 @@ function psEvents:ZONE_CHANGED_NEW_AREA(...)
 			end
 		end
 	elseif not t then
-		if psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+		if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
+				PileSeller:ToggleTracking(false)
+		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
 				  text = "Item tracking is still active, do you wish to disable it?",
 				  button1 = "Yes",
@@ -458,6 +462,8 @@ function psEvents:RAID_INSTANCE_WELCOME(...)
 			elseif not psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 				PileSeller:ToggleTracking(true)
 			end
+		elseif psSettings["trackSetting"] and psSettings["autoDeactivate"] then
+			PileSeller:ToggleTracking(false)
 		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
 			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
 			  text = "Item tracking is active, do you wish to disable it?",

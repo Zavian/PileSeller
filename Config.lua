@@ -998,13 +998,13 @@ function CreateConfigSection(UIConfig)
 			parent.speedTweakerSlider:SetPoint("TOPLEFT", parent, 80, y + 15)
 			parent.speedTweakerSlider:SetOrientation("HORIZONTAL")
 			parent.speedTweakerSlider:SetMinMaxValues(0, 2.0)
-			parent.speedTweakerSlider:SetValue(1.5)
+			parent.speedTweakerSlider:SetValue(psSettings["speedTweakerValue"])
 			parent.speedTweakerSlider:SetValueStep(.5)
 			parent.speedTweakerSlider:SetObeyStepOnDrag(true)
 			parent.speedTweakerSlider:SetSize(100, 20)
 			parent.speedTweakerSlider.value = parent.speedTweakerSlider:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 			parent.speedTweakerSlider.value:SetPoint("CENTER", parent.speedTweakerSlider, 0, -15)
-			parent.speedTweakerSlider.value:SetText("1.5")
+			parent.speedTweakerSlider.value:SetText(psSettings["speedTweakerValue"])
 
 
 

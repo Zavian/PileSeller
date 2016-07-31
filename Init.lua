@@ -1,7 +1,7 @@
 -- Initialization file
 
 
-_G.PileSeller = { __addonversion = "2.1.0-TESTING" }
+_G.PileSeller = { __addonversion = "2.1.1-TESTING" }
 local PileSeller = _G.PileSeller
 
 
@@ -66,59 +66,67 @@ PileSeller.settings = {
         name = "autoActivate",
         default = false,
         text = "Auto activate tracking by entering a raid or instance alone.",
-        sub = false
+        sub = false,
+        masterOf = "autoDeactivate"
     },
     [2] = {
+        name = "autoDeactivate",
+        default = false,
+        text = "Auto deactivate tracking when exiting a raid or an instance.",
+        sub = true,
+        slaveOf = "autoActivate"
+    },
+    [3] = {
         name = "autoCloseSellingBox",
         default = false,
         text = "Auto close the item sold dialog when closing the vendor.",
         sub = false
     },
-    [3] = {
+    [4] = {
         name = "confSetting",
         default = true,
         text = "Show confirmation before selling the loot.",
         sub = false
     },
-    [4] = {
+    [5] = {
         name = "sellJunkSetting",
         default = true,
         text = "Auto sell junk.",
         sub = false
     },
-    [5] = {
+    [6] = {
         name = "repairSetting",
         default = false,
         text = "Auto repair gear.",
         sub = false,
         masterOf = "repairGuildSetting"
     },
-    [6] = {
+    [7] = {
         name = "repairGuildSetting",
         default = false,
         text = "Use guild funds.",
         sub = true,
         slaveOf = "repairSetting"
     },
-    [7] = {
+    [8] = {
         name = "showAlertSetting",
         default = true,
         text = "Always message me if tracking is on (|cFF00FF00Recommended|r).",
         sub = false,
     },
-    [8] = {
+    [9] = {
         name = "disableInGarrison",
         default = true,
         text = "Always disable tracking when entering in garrison.",
         sub = false,
     },    
-    [9] = {
+    [10] = {
         name = "keepTier",
         default = false,
         text = "Don't sell any tier tokens I can use.",
         sub = false
     },
-    [10] = {
+    [11] = {
         name = "keepBoes",
         default = false,
         text = "Don't sell any BoE (Bind on Equip).",
@@ -131,27 +139,27 @@ PileSeller.settings = {
         end
         --masterOf = ["keepTrasmogs", "keepTrasmogsNotOwned"]
     },
-    [11] = {
+    [12] = {
         name = "keepTrasmogsNotOwned",
         default = false,
         text = "Just keep the ones I don't already own.",
         sub = true,
         slaveOf = "keepBoes"
     },
-    [12] = {
+    [13] = {
         name = "keepTrasmogs",
         default = false,
         text = "Keep only the ones I can transmog.",
         sub = true,
         slaveOf = "keepBoes"
     },    
-    [13] = {
+    [14] = {
         name = "keepCraftingReagents",
         default = false,
         text = "Don't sell any Crafting Reagent.",
         sub = false
     },
-    [14] = {
+    [15] = {
         name = "hideMinimapButton",
         default = false,
         text = "Hide minimap button. (You can type /pileseller or /ps to access the addon)",
@@ -162,7 +170,7 @@ PileSeller.settings = {
             PileSeller:HideMinimapButton(b)
         end
     },
-    [15] = {
+    [16] = {
         name = "speedTweaker",
         default = false,
         text = "Tweak the speed while selling the items.",
