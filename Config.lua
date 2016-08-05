@@ -4,91 +4,81 @@ local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:15:15|t"
 
 local lastClicked 
 
-function GetStaticPopup(text, returni)
-	for i = 1, 10 do
-		if _G["StaticPopup" .. i] then
-			if _G["StaticPopup" .. i .. "Text"] then
-				if _G["StaticPopup" .. i .. "Text"]:GetText() == text then
-					if not returni then
-						return _G["StaticPopup" .. i]
-					else return i end
-				end
-			end
-		end
+function GetStaticPopup(name)
+	for i = 1, #StaticPopup_DisplayedFrames do 
+		if StaticPopup_DisplayedFrames[i]:GetName() == name then return i end
 	end
+	return nil
 end
+
 
 function PileSeller:CreateCunstomStaticPopup(text)
-	StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-		text = text,
-		button1 = "Yes",
-		button2 = "No",
-		OnAccept = function()
-			--PileSeller:PrintTable(self)
-			local popup = GetStaticPopup(text)
-			local index = GetStaticPopup(text, true)
-			PileSeller:ToggleTracking(true, 
-				popup.checkbox1:GetChecked(), 
-				popup.checkbox2:GetChecked(), 
-				popup.checkbox3:GetChecked(), 
-				popup.checkbox4:GetChecked(),
-				popup.checkbox5:GetChecked()
-			)
-			HideAllFromConfig(popup)
-		end,
-		timeout = 0,
-		whileDead = true,
-		hideOnEscape = true,
-		preferredIndex = 3,
-	}
-	StaticPopup_Show ("PS_TOGGLE_TRACKING")
-	local popup = GetStaticPopup(text)
-
-	local checkboxes = {
-		[1] = {
-			text = "Don't sell any tiers I can use.",
-			variable = "keepTier",
-			sub = false
-		},
-		[2] = {
-			text = "Don't sell any crafting reagent.",
-			variable = "keepCraftingReagents",
-			sub = false
-		},
-		[3] = {
-			text = "Don't sell any BoE.",
-			variable = "keepBoes",
-			sub = false
-		},
-		[4] = {
-			text = "Just keep the ones I don't already own.",
-			variable = "keepTrasmogsNotOwned",
-			sub = true
-		},
-		[5] = {
-			text = "Keep only the ones I can transmog.",
-			variable = "keepTrasmogs",
-			sub = true
-		},
-	}
-
-	local Y, X = 40, 55
-	for i = 1, #checkboxes do
-		popup["checkbox" .. i] = CreateFrame("CheckButton", "popupCheckbox" .. i, popup, "UICheckButtonTemplate") 
-		popup["checkbox" .. i]:SetSize(25, 25)
-		popup["checkbox" .. i]:SetChecked(psSettings[checkboxes[i].variable])
-		popup["checkbox" .. i]:SetScript("OnClick", function() popup["checkbox" .. i]:SetChecked(not popup["checkbox" .. i]:GetChecked()) end)
-		popup["checkbox" .. i].lbl = popup["checkbox" .. i]:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		popup["checkbox" .. i].lbl:SetText(checkboxes[i].text)
-
-		local sub = checkboxes[i].sub and X + 20 or X
-		popup["checkbox" .. i]:SetPoint("CENTER", popup, "LEFT", sub, Y)
-		popup["checkbox" .. i].lbl:SetPoint("LEFT", popup["checkbox" .. i], 25, 0, "RIGHT")
-		Y = Y - 20
+	local popup = CreateFrame("Frame", "PS_TOGGLE_TRACKING", UIParent)
+	popup:SetFrameStrata("DIALOG")
+	popup:SetSize(320, 72)
+	popup.text = popup:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	popup.text:SetText(text)
+	popup.text:SetPoint("TOP", popup, "TOP", 0, -15)
+	local displayedFrames = StaticPopup_DisplayedFrames
+	if not StaticPopup_DisplayedFrames[1] then
+		popup:SetPoint("TOP", UIParent, "TOP", 0, -135)
+	else 
+		popup:SetPoint("TOP", StaticPopup_DisplayedFrames[1], "BOTTOM")
 	end
-	local height = 20 * #checkboxes + 80
+	tinsert(StaticPopup_DisplayedFrames, popup)
+	popup:Show()
+
+	local backdrop = {
+		bgFile = [[Interface\DialogFrame\UI-DialogBox-Background]],  
+		edgeFile = [[Interface\DialogFrame\UI-DialogBox-Border]],
+		tile = true,
+		tileSize = 32,
+		edgeSize = 32,
+		insets = {
+			left = 11,
+			right = 12,
+			top = 12,
+			bottom = 11
+		}
+	}
+	popup:SetBackdrop(backdrop)
+	local Y, X = 45, 25
+	local lines = 1
+	for i = 1, PileSeller:tablelength(PileSeller.itemsToKeep) do
+		PileSeller:CreateCheckIcon(PileSeller.itemsToKeep[i], popup, -Y, X, 35)
+		X = X + 40
+		if X > 305 then
+			Y = Y + 40
+			X = 25
+			lines = lines + 1
+		end
+	end
+	local height = 50 * lines + 80
 	popup:SetHeight(height)
+
+	popup.button1 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
+	popup.button1:SetPoint("BOTTOM", popup, "BOTTOM", -70, 15)
+
+	popup.button2 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
+	popup.button2:SetPoint("BOTTOM", popup, "BOTTOM", 70, 15)
+
+	popup.button1:SetText("Yes")
+	popup.button2:SetText("No")
+
+	popup.button1:SetScript("OnClick", function()
+		PileSeller:ToggleTracking(true, popup)
+		popup:Hide()
+	end)
+	popup.button2:SetScript("OnClick", function() popup:Hide() end)
+
+	popup:SetScript("OnHide", function() 
+		local index = GetStaticPopup("PS_TOGGLE_TRACKING")
+		if index then
+			tremove(StaticPopup_DisplayedFrames, index)
+		end
+	end)
 end
+--PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
 
 --- Function to write all the contents of a scroll frame
 --- inputs:
@@ -412,7 +402,9 @@ function HideAllFromConfig(ui)
 				name == "PileSeller_ConfigFrame_ToggleTracking" or 
 				name == "PileSeller_ConfigFrame_TutorialButton" or
 				(children[i]:GetName() == "PileSeller_ConfigFrame_ItemInfos" and not children[i]:IsVisible()) 
-			if not kid then children[i]:Hide() end
+			if not kid and not children[i].donthide then 
+				children[i]:Hide() 
+			end
 		end
 	end
 end
@@ -962,13 +954,73 @@ end
 
 function CreateConfigSection(UIConfig)
 	HideAllFromConfig(UIConfig)
-	UIConfig.configScroller = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_ConfigScroller", UIConfig:GetWidth() - 30, UIConfig:GetHeight() - 40, true, true)
-	UIConfig.configScroller:SetPoint("CENTER", UIConfig, "CENTER", -15, -18)
-	local parent = UIConfig.configScroller.content;
+
+	----------- Creating the buttons
+	UIConfig.tab1Button = CreateFrame("Button", "PileSeller_ConfigFrame_Tab1Button", UIConfig, "GameMenuButtonTemplate")
+	UIConfig.tab1Button:SetText("General Options")
+	UIConfig.tab1Button:SetSize(120, 25)
+	UIConfig.tab1Button:SetPoint("TOPLEFT", UIConfig, "TOPLEFT", 30, -40)
+	UIConfig.tab2Button = CreateFrame("Button", "PileSeller_ConfigFrame_Tab2Button", UIConfig, "GameMenuButtonTemplate")
+	UIConfig.tab2Button:SetText("Items to Keep")
+	UIConfig.tab2Button:SetSize(120, 25)
+	UIConfig.tab2Button:SetPoint("RIGHT", UIConfig.tab1Button, "RIGHT", 120, 0)
+
+	UIConfig.tab1Button:SetScript("OnClick", function(self)
+		local other = UIConfig.tab2Button
+		local otherpage = UIConfig.configContainer.configPage2
+		local page = UIConfig.configContainer.configPage1 
+
+		self.Text:SetTextColor(1,1,1)
+		other.Text:SetTextColor(253/255, 209/255, 22/255)
+		page:Show()
+		otherpage:Hide()
+	end)
+
+	UIConfig.tab2Button:SetScript("OnClick", function(self)
+		local other = UIConfig.tab1Button
+		local otherpage = UIConfig.configContainer.configPage1
+		local page = UIConfig.configContainer.configPage2
+
+		self.Text:SetTextColor(1,1,1)
+		other.Text:SetTextColor(253/255, 209/255, 22/255)
+		page:Show()
+		otherpage:Hide()
+
+		if page["keepBoes"].dropdown then
+			 page["keepBoes"].dropdown.frame:Hide()
+		end
+
+		if page["keepRecipes"].dropdown then
+			page["keepRecipes"].dropdown.frame:Hide()
+		end
+	end)
+	---------------------------------
+
+	----------- Creating the container
+	UIConfig.configContainer = CreateFrame("Frame", "PileSeller_ConfigFrame_Pages", UIConfig)
+	UIConfig.configContainer:SetSize(450, 325)
+	UIConfig.configContainer:SetPoint("TOPLEFT", UIConfig.tab1Button, "TOPLEFT", 0, -25)
+	---------------------------------
+
+	----------- Creating the pages
+	UIConfig.configContainer.configPage1 = CreateFrame("Frame", "PileSeller_ConfigFrame_Page1", UIConfig.configContainer, "InsetFrameTemplate3")
+	UIConfig.configContainer.configPage1:SetSize(450, 325)
+	UIConfig.configContainer.configPage1:SetPoint("TOPLEFT", UIConfig.tab1Button, "TOPLEFT", 0, -25)
+	UIConfig.configContainer.configPage2 = CreateFrame("Frame", "PileSeller_ConfigFrame_Page2", UIConfig.configContainer, "InsetFrameTemplate3")
+	UIConfig.configContainer.configPage2:SetSize(450, 325)
+	UIConfig.configContainer.configPage2:SetPoint("TOPLEFT", UIConfig.tab1Button, "TOPLEFT", 0, -25)
+	---------------------------------
+	UIConfig.tab1Button.Text:SetTextColor(1,1,1)
+	UIConfig.configContainer.configPage1:Show()
+	UIConfig.configContainer.configPage2:Hide()
+
+	UIConfig.configContainer.configPage1.configScroller = PileSeller:CreateScroll(UIConfig.configContainer.configPage1, "PileSeller_ConfigFrame_Page1_ConfigScroller", UIConfig.configContainer.configPage1:GetWidth() - 20, UIConfig.configContainer.configPage1:GetHeight() - 40, true, true)
+	UIConfig.configContainer.configPage1.configScroller:SetPoint("CENTER", UIConfig.configContainer.configPage1, "CENTER", -35, 0)
+	local parent = UIConfig.configContainer.configPage1.configScroller.content
 	local y = 0
 	for i = 1, #PileSeller.settings do
 		PileSeller:CreateCheckButton(PileSeller.settings[i], parent, y)
-		y = y - 25
+		y = y - 35
 		if PileSeller.settings[i].name == "speedTweaker" then
 			if not psSettings["speedTweakerValue"] then
 				psSettings["speedTweakerValue"] = 1.5
@@ -990,7 +1042,7 @@ function CreateConfigSection(UIConfig)
 				GameTooltip:Hide()
 			end)
 			
-			parent.speedTweaker.questionButton:SetPoint("RIGHT", parent.speedTweaker.lbl, -150, 10)
+			parent.speedTweaker.questionButton:SetPoint("RIGHT", parent.speedTweaker.lbl, -50, 10)
 			parent.speedTweaker.questionButton:SetSize(30, 50)
 
 			y = y - 25
@@ -1019,18 +1071,390 @@ function CreateConfigSection(UIConfig)
             parent.speedTweakerSlider.Low:Hide()
 			
 			parent.speedTweakerSlider:SetScript("OnValueChanged", function(self, value)
-				parent.speedTweakerSlider.value:SetText(value)
+				self.value:SetText(value)
 				psSettings["speedTweakerValue"] = value
 			end)
 			y = y - 25
 		end
 	end
+
+	--UIConfig.configContainer.configPage2.configScroller = PileSeller:CreateScroll(UIConfig.configContainer.configPage2, "PileSeller_ConfigFrame_Page2_ConfigScroller", UIConfig.configContainer.configPage2:GetWidth() - 20, UIConfig.configContainer.configPage2:GetHeight() - 40, true, true)
+	parent = UIConfig.configContainer.configPage2--.configScroller.content
+	y = -20
+	local x = 25
+	local spacing = 80
+	for i = 1, #PileSeller.itemsToKeep do
+		PileSeller:CreateCheckIcon(PileSeller.itemsToKeep[i], parent, y, x)
+		if PileSeller.itemsToKeep[i].name == "keepBoes" then
+			if psSettings["keepBoes"] ~= nil then
+				if psSettings["keepBoes-cloth"] == nil then psSettings["keepBoes-cloth"] = true end
+				if psSettings["keepBoes-leather"] == nil then psSettings["keepBoes-leather"] = true end
+				if psSettings["keepBoes-mail"] == nil then psSettings["keepBoes-mail"] = true end
+				if psSettings["keepBoes-plate"] == nil then psSettings["keepBoes-plate"] = true end
+				if psSettings["keepBoes-cosmetics"] == nil then psSettings["keepBoes-cosmetics"] = true end
+				if psSettings["keepBoes-shields"] == nil then psSettings["keepBoes-shields"] = true end
+				if psSettings["keepBoes-offhands"] == nil then psSettings["keepBoes-offhands"] = true end
+				if psSettings["keepBoes-weapons"] == nil then psSettings["keepBoes-weapons"] = true end
+				if psSettings["keepBoes-necks"] == nil then psSettings["keepBoes-necks"] = true end
+				if psSettings["keepBoes-rings"] == nil then psSettings["keepBoes-rings"] = true end
+				if psSettings["keepBoes-trinkets"] == nil then psSettings["keepBoes-trinkets"] = true end
+			end
+			if not parent["keepBoes"].dropdown then
+				BoEFilterDropdown_Initialize(parent["keepBoes"])
+			end
+		elseif PileSeller.itemsToKeep[i].name == "keepRecipes" then
+			local name = "keepRecipes"
+			if psSettings[name] ~= nil then
+				if psSettings[name.."-alchemy"] == nil then psSettings[name.."-alchemy"] = true end
+				if psSettings[name.."-blacksmithing"] == nil then psSettings[name.."-blacksmithing"] = true end
+				if psSettings[name.."-enchanting"] == nil then psSettings[name.."-enchanting"] = true end
+				if psSettings[name.."-engineering"] == nil then psSettings[name.."-engineering"] = true end
+				if psSettings[name.."-inscription"] == nil then psSettings[name.."-inscription"] = true end
+				if psSettings[name.."-jewelcrafting"] == nil then psSettings[name.."-jewelcrafting"] = true end
+				if psSettings[name.."-leatherworking"] == nil then psSettings[name.."-leatherworking"] = true end
+				if psSettings[name.."-tailoring"] == nil then psSettings[name.."-tailoring"] = true end
+				if psSettings[name.."-cooking"] == nil then psSettings[name.."-cooking"] = true end
+				if psSettings[name.."-fishing"] == nil then psSettings[name.."-fishing"] = true end
+				if psSettings[name.."-firstaid"] == nil then psSettings[name.."-firstaid"] = true end
+			end
+			if not parent[name].dropdown then
+				RecipeFilterDropdown_Initialize(parent[name])
+			end
+		end
+		x = x + spacing
+		if x >= spacing * 5 then
+			x = 25
+			y = y - spacing
+		end
+		--y = y - 35
+	end
+end
+
+function RecipeFilterDropdown_Initialize(button)
+	button.dropdown = CreateFrame("BUTTON", button:GetName() .. "DropDown", button, "GameMenuButtonTemplate")
+	button.dropdown:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+
+	button.dropdown.frame = CreateFrame("BUTTON", button.dropdown:GetName() .. "Frame", button, "UIDropDownMenuTemplate")
+	button.dropdown.frame:SetPoint("RIGHT", button.dropdown)
+	button.dropdown:SetSize(button:GetWidth(), 21)
+	UIDropDownMenu_Initialize(button.dropdown.frame, function(button)
+		local info = UIDropDownMenu_CreateInfo()
+		info.maxWidth = button:GetWidth() - 20
+		info.text = CHECK_ALL
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = true
+		info.isTitle = false
+		info.func = function()
+			psSettings["keepRecipes-alchemy"] = true
+			psSettings["keepRecipes-blacksmithing"] = true
+			psSettings["keepRecipes-enchanting"] = true
+			psSettings["keepRecipes-engineering"] = true
+			psSettings["keepRecipes-inscription"] = true
+			psSettings["keepRecipes-jewelcrafting"] = true
+			psSettings["keepRecipes-leatherworking"] = true
+			psSettings["keepRecipes-tailoring"] = true
+			psSettings["keepRecipes-cooking"] = true
+		end
+		UIDropDownMenu_AddButton(info, 1)
+		info.keepShownOnClick = true	
+		info.text = "Alchemy"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-alchemy"] = not psSettings["keepRecipes-alchemy"] end
+		info.checked = psSettings["keepRecipes-alchemy"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Blacksmithing"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-blacksmithing"] = not psSettings["keepRecipes-blacksmithing"] end
+		info.checked = psSettings["keepRecipes-blacksmithing"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Enchanting"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-enchanting"] = not psSettings["keepRecipes-enchanting"] end
+		info.checked = psSettings["keepRecipes-enchanting"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Engineering"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-engineering"] = not psSettings["keepRecipes-engineering"] end
+		info.checked = psSettings["keepRecipes-engineering"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Inscription"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-inscription"] = not psSettings["keepRecipes-inscription"] end
+		info.checked = psSettings["keepRecipes-inscription"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Jewelcrafting"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-jewelcrafting"] = not psSettings["keepRecipes-jewelcrafting"] end
+		info.checked = psSettings["keepRecipes-jewelcrafting"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Leatherworking"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-leatherworking"] = not psSettings["keepRecipes-leatherworking"] end
+		info.checked = psSettings["keepRecipes-leatherworking"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Tailoring"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-tailoring"] = not psSettings["keepRecipes-tailoring"] end
+		info.checked = psSettings["keepRecipes-tailoring"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Cooking"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-cooking"] = not psSettings["keepRecipes-cooking"] end
+		info.checked = psSettings["keepRecipes-cooking"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Fishing"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-fishing"] = not psSettings["keepRecipes-fishing"] end
+		info.checked = psSettings["keepRecipes-fishing"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "First Aid"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepRecipes-firstaid"] = not psSettings["keepRecipes-firstaid"] end
+		info.checked = psSettings["keepRecipes-firstaid"]
+		UIDropDownMenu_AddButton(info, 1)
+
+
+	end, "MENU")
+	--UIDropDownMenu_SetWidth(button.dropdown, 250)
+	button.dropdown:SetText("Profs.")
+
+	button.dropdown:SetScript("OnClick", function(self)
+		ToggleDropDownMenu(1, nil, self.frame, self, 0, 0)
+	end)
+	if button.tex:IsDesaturated() then
+		button.dropdown:Hide()
+	else button.dropdown:Show() end
+end
+
+function BoEFilterDropdown_Initialize(button)
+	button.dropdown = CreateFrame("BUTTON", button:GetName() .. "DropDown", button, "GameMenuButtonTemplate")
+	button.dropdown:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+
+	button.dropdown.frame = CreateFrame("BUTTON", button.dropdown:GetName() .. "Frame", button, "UIDropDownMenuTemplate")
+	button.dropdown.frame:SetPoint("RIGHT", button.dropdown)
+	button.dropdown:SetSize(button:GetWidth(), 21)
+	UIDropDownMenu_Initialize(button.dropdown.frame, function(button)
+		local info = UIDropDownMenu_CreateInfo()
+		info.maxWidth = button:GetWidth() - 20
+		info.text = CHECK_ALL
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = true
+		info.isTitle = false
+		info.func = function()
+			psSettings["keepBoes-cloth"] = true
+			psSettings["keepBoes-leather"] = true
+			psSettings["keepBoes-mail"] = true
+			psSettings["keepBoes-plate"] = true
+			psSettings["keepBoes-necks"] = true
+			psSettings["keepBoes-rings"] = true
+			psSettings["keepBoes-trinkets"] = true
+		end
+		UIDropDownMenu_AddButton(info, 1)
+		info.keepShownOnClick = true	
+		info.text = "Cloth"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-cloth"] = not psSettings["keepBoes-cloth"] end
+		info.checked = psSettings["keepBoes-cloth"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Leather"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-leather"] = not psSettings["keepBoes-leather"] end
+		info.checked = psSettings["keepBoes-leather"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Mail"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-mail"] = not psSettings["keepBoes-mail"] end
+		info.checked = psSettings["keepBoes-mail"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Plate"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-plate"] = not psSettings["keepBoes-plate"] end
+		info.checked = psSettings["keepBoes-plate"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Cosmetics"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-cosmetics"] = not psSettings["keepBoes-cosmetics"] end
+		info.checked = psSettings["keepBoes-cosmetics"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Shields"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-shields"] = not psSettings["keepBoes-shields"] end
+		info.checked = psSettings["keepBoes-shields"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Off Hands"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-offhands"] = not psSettings["keepBoes-offhands"] end
+		info.checked = psSettings["keepBoes-offhands"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "~~~~~~~~~~~~"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = true
+		info.func = nil
+		info.checked = nil
+		info.notClickable = true
+		UIDropDownMenu_AddButton(info, 1)
+		
+		info = UIDropDownMenu_CreateInfo()
+		info.maxWidth = button:GetWidth() - 20
+		info.keepShownOnClick = true
+
+		info.text = "Weapons"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-weapons"] = not psSettings["keepBoes-weapons"] end
+		info.checked = psSettings["keepBoes-weapons"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Necks"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-necks"] = not psSettings["keepBoes-necks"] end
+		info.checked = psSettings["keepBoes-necks"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Rings"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-rings"] = not psSettings["keepBoes-rings"] end
+		info.checked = psSettings["keepBoes-rings"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "Trinkets"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepBoes-trinkets"] = not psSettings["keepBoes-trinkets"] end
+		info.checked = psSettings["keepBoes-trinkets"]
+		UIDropDownMenu_AddButton(info, 1)
+
+
+	end, "MENU")
+	--UIDropDownMenu_SetWidth(button.dropdown, 250)
+	button.dropdown:SetText("Types")
+
+	button.dropdown:SetScript("OnClick", function(self)
+		ToggleDropDownMenu(1, nil, self.frame, self, 0, 0)
+	end)
+	if button.tex:IsDesaturated() then
+		button.dropdown:Hide()
+	else button.dropdown:Show() end
+end
+
+function PileSeller:CreateCheckIcon(button, parent, y, x, size)
+	local name = button.name
+	local default = button.default
+	local title = button.title
+	local tooltip = button.tooltip
+	local active = false
+	if psSettings[name] ~= nil then
+		active = psSettings[name]
+	end
+	local icon = "Interface\\ICONS\\" .. button.icon
+	if not size then size = 75 end
+
+	parent[name] = CreateFrame("Button", "btn" .. name, parent)
+	parent[name]:SetSize(size, size)
+	parent[name].tex = parent[name]:CreateTexture()
+	parent[name].tex:SetTexture(icon)
+	parent[name].tex:SetAllPoints()
+	parent[name].tex:SetDesaturated(not active)
+	parent[name]:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
+
+	parent[name]:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+	parent[name]:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+		GameTooltip:SetSize(30, 30)
+		GameTooltip:AddLine("|cFFFFFFFF" .. title .. "|r")
+		GameTooltip:AddLine(tooltip, 253/255, 209/255, 22/255, true)			
+		GameTooltip:Show()
+	end)
+	parent[name]:SetScript("OnClick", function(self)
+		local desaturated = self.tex:IsDesaturated()
+		if desaturated then
+			psSettings[name] = true
+			self.tex:SetDesaturated(false)
+			if parent:GetName() ~= "PS_TOGGLE_TRACKING" then
+				if name == "keepBoes" or name == "keepRecipes" then
+					parent[name].dropdown:Show()
+				end
+			end
+		else
+			psSettings[name] = false
+			self.tex:SetDesaturated(true)
+			if parent:GetName() ~= "PS_TOGGLE_TRACKING" then
+				if name == "keepBoes" or name == "keepRecipes" then
+					parent[name].dropdown:Hide()
+				end
+			end
+		end
+	end)
+	parent[name]:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 end
 
 function PileSeller:CreateCheckButton(check, parent, y)
 	local name = check.name
 	local sub = check.sub and 50 or 30
-	local width = check.sub and 335 or 400
+	local width = check.sub and 325 or 350
 	local text = check.text
 	parent[name] = CreateFrame("CheckButton", "chk" .. name, UIConfig, "UICheckButtonTemplate")
 	parent[name]:SetChecked(psSettings[name])
@@ -1051,6 +1475,7 @@ function PileSeller:CreateCheckButton(check, parent, y)
 	parent[name].lbl:SetWidth(width)
 	parent[name].lbl:SetJustifyH("LEFT")
 	parent[name].lbl:SetText(text)
+	parent[name].lbl:SetFont("Fonts\\FRIZQT__.TTF", 14)
 	parent[name].lbl:SetTextColor(253/255, 209/255, 22/255,1)
 	if check.slaveOf then ToggleCheckAndText(parent, name, psSettings[check.slaveOf]) end
 	

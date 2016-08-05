@@ -1,7 +1,7 @@
 -- Initialization file
 
 
-_G.PileSeller = { __addonversion = "2.1.1" }
+_G.PileSeller = { __addonversion = "2.2.0" }
 local PileSeller = _G.PileSeller
 
 
@@ -16,7 +16,6 @@ function PileSeller:tablelength(T)
 end
 
 GetItemInfo(19019)
-
 
 
 function PileSeller:PrintTable(t, indent, done)
@@ -67,14 +66,11 @@ PileSeller.settings = {
         default = false,
         text = "Auto activate tracking by entering a raid or instance alone.",
         sub = false,
-        masterOf = "autoDeactivate"
     },
     [2] = {
         name = "autoDeactivate",
         default = false,
         text = "Auto deactivate tracking when exiting a raid or an instance.",
-        sub = true,
-        slaveOf = "autoActivate"
     },
     [3] = {
         name = "autoCloseSellingBox",
@@ -121,73 +117,86 @@ PileSeller.settings = {
         sub = false,
     },    
     [10] = {
-        name = "keepTier",
-        default = false,
-        text = "Don't sell any tier tokens I can use.",
-        sub = false
-    },
-    [11] = {
-        name = "keepBoes",
-        default = false,
-        text = "Don't sell any BoE (Bind on Equip).",
-        sub = false,
-        f = function()
-            --PileSeller:PrintTable(PileSeller.UIConfig["keepBoes"].lbl)
-            psSettings["keepBoes"] = PileSeller.UIConfig.configScroller.content["keepBoes"]:GetChecked()
-            ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogs", PileSeller.UIConfig["keepBoes"]:GetChecked())
-            ToggleCheckAndText(PileSeller.UIConfig, "keepTrasmogsNotOwned", PileSeller.UIConfig["keepBoes"]:GetChecked())
-        end
-        --masterOf = ["keepTrasmogs", "keepTrasmogsNotOwned"]
-    },
-    [12] = {
-        name = "keepTrasmogsNotOwned",
-        default = false,
-        text = "Just keep the ones I don't already own.",
-        sub = true,
-        slaveOf = "keepBoes"
-    },
-    [13] = {
-        name = "keepTrasmogs",
-        default = false,
-        text = "Keep only the ones I can transmog.",
-        sub = true,
-        slaveOf = "keepBoes"
-    },    
-    [14] = {
-        name = "keepCraftingReagents",
-        default = false,
-        text = "Don't sell any Crafting Reagent.",
-        sub = false
-    },
-    [15] = {
         name = "hideMinimapButton",
         default = false,
         text = "Hide minimap button. (You can type /pileseller or /ps to access the addon)",
         sub = false,
-        f = function()
-            local b = PileSeller.UIConfig.configScroller.content.hideMinimapButton:GetChecked()
-            psSettings["hideMinimapButton"] = b
-            PileSeller:HideMinimapButton(b)
+        f = function(self)
+            psSettings["hideMinimapButton"] = self:GetChecked()
+            PileSeller:HideMinimapButton(self:GetChecked())
         end
     },
-    [16] = {
+    [11] = {
         name = "speedTweaker",
         default = false,
         text = "Tweak the speed while selling the items.",
         sub = false,
-        f = function()
-            local b = PileSeller.UIConfig.configScroller.content.speedTweaker:GetChecked()
-            psSettings["speedTweaker"] = b
-            --PileSeller.UIConfig.configScroller.content.speedTweaker.questionButton:SetEnabled(b)
-            PileSeller.UIConfig.configScroller.content.speedTweakerSlider:SetEnabled(b)
-            if b then
-                PileSeller.UIConfig.configScroller.content.speedTweakerSlider.value:SetTextColor(253/255, 209/255, 22/255,1)
+        f = function(self)
+            psSettings["speedTweaker"] = self:GetChecked()
+            self:GetParent().speedTweakerSlider:SetEnabled(self:GetChecked())
+            if self:GetChecked() then
+                self:GetParent().speedTweakerSlider.value:SetTextColor(253/255, 209/255, 22/255,1)
             else
-                PileSeller.UIConfig.configScroller.content.speedTweakerSlider.value:SetTextColor(153/255, 153/255, 153/255, 1)
+                self:GetParent().speedTweakerSlider.value:SetTextColor(153/255, 153/255, 153/255, 1)
             end
         end
     }
 }
+
+PileSeller.itemsToKeep = {
+    [1] = {
+        name = "keepTier",
+        default = false,
+        title = "Keep tiers",
+        tooltip = "Keep all the tokens you are able to use.",
+        icon = "Achievement_Dungeon_GloryoftheRaider"
+    },
+    [2] = {
+        name = "keepBoes",
+        default = false,
+        title = "Keep BoE",
+        tooltip = "Keep all the Bind on Equip items specified on the dropdown box below\n(checked = keep)\n|cFF00FF00Recipes are not in this category, use the recipe section|r.",
+        icon =  "Ability_Priest_Evangelism"
+    }, 
+    [3] = {
+        name = "keepCraftingReagents",
+        default = false,
+        title = "Keep crafting reagents",
+        tooltip = "Keep all the crafting reagents.",
+        icon = "INV_Enchanting_WOD_crystalbundle"
+    },
+    [4] = {
+        name = "keepLockboxes",
+        default = false,
+        title = "Keep all lockboxes",
+        tooltip = "Keep all the dropped lockboxes.",
+        icon = "Garrison_BronzeChest"
+    },
+    [5] = {
+        name = "keepRecipes",
+        default = false,
+        title = "Keep all the recipes",
+        tooltip = "Keep all the recipes from various professions specified in the dropdown box below\n(checked = keep)",
+        icon = "inv_scroll_05"
+    },
+    [6] = {
+        name = "keepCompanions",
+        default = false,
+        title = "Keep all companions",
+        tooltip = "Keep all the items that let me learn companions.",
+        icon = "INV_MISC_PETMOONKINTA"        
+    },
+    [7] = {
+        name = "keepSpecials",
+        default = true,
+        title = "Keep all special items",
+        tooltip = "Special items are consumables such as Illusion scrolls, artifact power items, order hall upgrades and a lot of other cool stuff.\n|cFF00FF00Recommended|r",
+        icon = "INV_Misc_CelebrationCake_01"
+    }
+}
+
+
+
 
 
 
@@ -207,12 +216,23 @@ if not psSettings then
         local d = PileSeller.settings[i].default
         psSettings[s] = d
     end
+
+    for i = 1, PileSeller:tablelength(PileSeller.itemsToKeep) do
+        local s = PileSeller.itemsToKeep[i].name
+        local d = PileSeller.itemsToKeep[i].default
+        psSettings[s] = d
+    end
     psSettings["minimapButtonPos"] = 175 
     psSettings["trackSetting"] = false
 else
     for i=1, PileSeller:tablelength(PileSeller.settings) do
         local s = PileSeller.settings[i].name
         local d = PileSeller.settings[i].default
+        if psSettings[s] == nil then psSettings[s] = d end
+    end
+    for i = 1, PileSeller:tablelength(PileSeller.itemsToKeep) do
+        local s = PileSeller.itemsToKeep[i].name
+        local d = PileSeller.itemsToKeep[i].default
         if psSettings[s] == nil then psSettings[s] = d end
     end
     if psSettings["minimapButtonPos"] == nil then psSettings["minimapButtonPos"] = 175 end
@@ -222,6 +242,10 @@ end
 if not psItemsAlert then psItemsAlert = {} end
 if not psIgnoredZones then psIgnoredZones = {} end
 if psTutorialDone == nil then psTutorialDone = false end
+
+-------------- This is because these variables are now deprecated (Version 2.2.0)
+if psSettings["keepTrasmogsNotOwned"] ~= nil then psSettings["keepTrasmogsNotOwned"] = nil end
+if psSettings["keepTrasmogs"] ~= nil then psSettings["keepTrasmogs"] = nil end
 
 function PileSeller:Reset()
 	psItems = nil

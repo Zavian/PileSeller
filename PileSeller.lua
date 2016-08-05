@@ -40,6 +40,7 @@ function psEvents:ADDON_LOADED(...)
 		tinsert(UISpecialFrames, "PileSeller_ConfigFrame") 
 		tinsert(UISpecialFrames, "PileSeller_SellingBoxFrame")
 		tinsert(UISpecialFrames, "PileSeller_SellingFrame")
+		tinsert(UISpecialFrames, "PS_TOGGLE_TRACKING")
 		PileSeller:LoadArtifacts()
 	end
 end
@@ -88,17 +89,7 @@ function PileSeller:IsBoE(id)
 	for i = 1, f:NumLines() do
 		local t = _G["PileSellerScanningTooltipTextLeft" .. i]:GetText()
 		if t == ITEM_BIND_ON_EQUIP then 
-			--return true
-			local returner = true
-			if psSettings["keepTrasmogs"] then
-				if psSettings["keepTrasmogsNotOwned"] then
-					returner = not PileSeller:IsOwned(id)
-				end
-				returner = returner and PileSeller:CanTransmog(id)
-			elseif psSettings["keepTrasmogsNotOwned"] then
-				returner = not PileSeller:IsOwned(id)
-			end
-			return returner
+			return true
 		end
 	end
 	return false
@@ -113,6 +104,68 @@ function PileSeller:IsToken(item)
 	        end      
 	    end
 	end
+end
+
+function PileSeller:IsLockbox(id)
+    local f = CreateFrame('GameTooltip', 'PileSellerScanningTooltip', UIParent, 'GameTooltipTemplate')
+	f:SetOwner(UIParent, 'ANCHOR_NONE') 
+	f:SetItemByID(id)
+	for i = 1, f:NumLines() do
+		local t = _G["PileSellerScanningTooltipTextLeft" .. i]:GetText()
+		if t:match(LOCKED) then 
+			return true
+		end
+	end
+	return false
+end
+
+function PileSeller:IsCompanion(id)
+	local classID, subClassID = select(12, GetItemInfo(id)), select(13, GetItemInfo(id))
+	if classID ~= 15 then return false end
+	if subClassID ~= 2 then return false end
+	return true
+end
+
+function PileSeller:ArmorType(item)
+	local _, _, _, _, _, class, subclass, _, equipSlot, _, _, classID, subClassID = GetItemInfo(item)
+	local offhands = select(1, GetItemSubClassInfo(4, 0))
+	local cloth =	select(1, GetItemSubClassInfo(4, 1))
+	local leather =	select(1, GetItemSubClassInfo(4, 2))
+	local mail =	select(1, GetItemSubClassInfo(4, 3))
+	local plate =	select(1, GetItemSubClassInfo(4, 4))
+	local cosmetics =	select(1, GetItemSubClassInfo(4, 5))
+	local shields =	select(1, GetItemSubClassInfo(4, 6))
+	local returner = ""
+	if class ~= ARMOR then return nil end
+	if subclass ~= MISCELLANEOUS or equipSlot == "INVTYPE_HOLDABLE" then
+		if subclass == offhands then
+			returner = "offhands"
+		elseif subclass == cloth then
+			returner = "cloth"
+		elseif subclass == leather then
+			returner = "leather"
+		elseif subclass == mail then
+			returner = "mail"
+		elseif subclass == plate then
+			returner = "plate"
+		elseif subclass == cosmetics then
+			returner = "cosmetics"
+		elseif subclass == shields then
+			returner = "shields"
+		else returner = nil end
+	else
+		equipSlot = equipSlot:gsub("INVTYPE_", "")
+		returner = equipSlot == "TRINKET" and "trinkets" or
+			equipSlot == "NECK" and "necks" or
+			equipSlot == "FINGER" and "rings" or nil
+	end
+	return returner
+end
+
+function PileSeller:WeaponType(item)
+	local classID = select(12, GetItemInfo(item))
+	if classID ~= 2 then return nil end
+	return "weapons"
 end
 
 function PileSeller:CanTransmog(item)
@@ -360,7 +413,7 @@ function PileSeller:SellJunk()
 	end
 end
 
-function PileSeller:ToggleTracking(set, keepTier, keepCraftingReagent, keepBoes, keepTrasmogsNotOwned, keepTrasmogs)
+function PileSeller:ToggleTracking(set, popup)
 	if set then 
 		if not psSettings["trackSetting"] then
 			psSettings["trackSetting"] = true; print("|cFF" .. PileSeller.color .. "Pile|rSeller: |cFF00FF00Tracking enabled.|r")
@@ -381,12 +434,99 @@ function PileSeller:ToggleTracking(set, keepTier, keepCraftingReagent, keepBoes,
 		end
 	end
 
-	if keepTier ~= nil then
-		psSettings["keepTier"] = keepTier
-		psSettings["keepCraftingReagent"] = keepCraftingReagent
-		psSettings["keepBoes"] = keepBoes
-		psSettings["keepTrasmogsNotOwned"] = keepTrasmogsNotOwned
-		psSettings["keepTrasmogs"] = keepTrasmogs
+	if popup ~= nil then
+		psSettings["keepTier"] = not popup["keepTier"].tex:IsDesaturated()
+		psSettings["keepBoes"] = not popup["keepBoes"].tex:IsDesaturated()
+		psSettings["keepCraftingReagents"] = not popup["keepCraftingReagents"].tex:IsDesaturated()
+		psSettings["keepLockboxes"] = not popup["keepLockboxes"].tex:IsDesaturated()
+		psSettings["keepRecipes"] = not popup["keepRecipes"].tex:IsDesaturated()
+		psSettings["keepCompanions"] = not popup["keepCompanions"].tex:IsDesaturated()
+		psSettings["keepSpecials"] = not popup["keepSpecials"].tex:IsDesaturated()
+	end
+end
+
+function PileSeller:shouldIPopup(debug)
+	local instanceInfo = select(2, GetInstanceInfo())
+	local inInstance = string.match(instanceInfo, CHAT_MSG_RAID:lower()) or string.match(instanceInfo, CHAT_MSG_PARTY:lower())
+	local inGarrison = string.find(GetInstanceInfo(), GARRISON_LOCATION_TOOLTIP)
+	local inGroup = IsInGroup()
+	local tracking = psSettings["trackSetting"]
+	local showAlert = psSettings["showAlertSetting"]
+	if debug then
+		return instanceInfo, inInstance, inGarrison, inGroup, tracking
+		--PileSeller:debugprint("instanceInfo = " .. tostring(instanceInfo) or nil )
+		--PileSeller:debugprint("inInstance = " .. tostring(inInstance) or nil )
+		--PileSeller:debugprint("inGarrison = " .. tostring(inGarrison) or nil )
+		--PileSeller:debugprint("inGroup = " .. tostring(inGroup) or nil )
+		--PileSeller:debugprint("tracking = " .. tostring(tracking) or nil )
+	end
+	if inInstance and not inGarrison then
+		if inGroup then
+			if tracking then
+				if psSettings["autoDeactivate"] then 
+					PileSeller:ToggleTracking(false)
+				elseif showAlert then
+					StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+				  		text = "Item tracking is active, do you wish to disable it?",
+				  		button1 = "Yes",
+				  		button2 = "No",
+				  		OnAccept = function()
+							PileSeller:ToggleTracking(false)
+				  		end,
+				  		timeout = 0,
+				  		whileDead = false,
+				  		hideOnEscape = true,
+				  		preferredIndex = 3,
+					}
+					StaticPopup_Show ("PS_TOGGLE_TRACKING")
+				end
+			end
+		else
+			if not tracking then
+				if psSettings["autoActivate"] then
+					PileSeller:ToggleTracking(true)
+				else
+					PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
+				end
+			end
+		end
+	elseif inGarrison then
+		if psSettings["disableInGarrison"] then PileSeller:ToggleTracking(false)
+		elseif showAlert and tracking then
+			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+		  		text = "Item tracking is active, do you wish to disable it?",
+		  		button1 = "Yes",
+		  		button2 = "No",
+		  		OnAccept = function()
+					PileSeller:ToggleTracking(false)
+		  		end,
+		  		timeout = 0,
+		  		whileDead = false,
+		  		hideOnEscape = true,
+		  		preferredIndex = 3,
+			}
+			StaticPopup_Show ("PS_TOGGLE_TRACKING")
+		end
+	elseif not inInstance and not inGarrison then
+		if tracking then
+			if psSettings["autoDeactivate"] then
+				PileSeller:ToggleTracking(false)
+			elseif showAlert then
+				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+			  		text = "Item tracking is active, do you wish to disable it?",
+			  		button1 = "Yes",
+			  		button2 = "No",
+			  		OnAccept = function()
+						PileSeller:ToggleTracking(false)
+			  		end,
+			  		timeout = 0,
+			  		whileDead = false,
+			  		hideOnEscape = true,
+			  		preferredIndex = 3,
+				}
+				StaticPopup_Show ("PS_TOGGLE_TRACKING")
+			end
+		end
 	end
 end
 
@@ -398,88 +538,90 @@ function psEvents:ZONE_CHANGED_NEW_AREA(...)
 			end
 		end
 	end
-	local type = select(2, GetInstanceInfo())
-	local t = string.match(type, CHAT_MSG_RAID:lower()) or string.match(type, CHAT_MSG_PARTY:lower())
-	local garrison = string.find(GetInstanceInfo(), GARRISON_LOCATION_TOOLTIP)
-	local g = IsInGroup()
-	if t and not garrison then
-		if not g then
-			if not psSettings["trackSetting"] and not psSettings["autoActivate"] then
-				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
-			elseif psSettings["autoActivate"] and not psSettings["trackSetting"] then
-				PileSeller:ToggleTracking(true)
-			end
-		else
-			if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
-				PileSeller:ToggleTracking(false)
-			elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
-				StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-				  text = "Item tracking is active, do you wish to disable it?",
-				  button1 = "Yes",
-				  button2 = "No",
-				  OnAccept = function()
-					PileSeller:ToggleTracking(false)
-				  end,
-				  timeout = 0,
-				  whileDead = false,
-				  hideOnEscape = true,
-				  preferredIndex = 3,
-				}
-				StaticPopup_Show ("PS_TOGGLE_TRACKING")
-			end
-		end
-	elseif not t then
-		if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
-				PileSeller:ToggleTracking(false)
-		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
-			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-				  text = "Item tracking is still active, do you wish to disable it?",
-				  button1 = "Yes",
-				  button2 = "No",
-				  OnAccept = function()
-					 PileSeller:ToggleTracking(false)
-				  end,
-				  timeout = 0,
-				  whileDead = false,
-				  hideOnEscape = true,
-				  preferredIndex = 3,
-				}
-				StaticPopup_Show ("PS_TOGGLE_TRACKING")
-		end
-	elseif garrison and psSettings["disableInGarrison"] then
-		PileSeller:ToggleTracking(false)
-	end
+	PileSeller:shouldIPopup()
+	-- local type = select(2, GetInstanceInfo())
+	-- local t = string.match(type, CHAT_MSG_RAID:lower()) or string.match(type, CHAT_MSG_PARTY:lower())
+	-- local garrison = string.find(GetInstanceInfo(), GARRISON_LOCATION_TOOLTIP)
+	-- local g = IsInGroup()
+	-- if t and not garrison then
+	-- 	if not g then
+	-- 		if not psSettings["trackSetting"] and not psSettings["autoActivate"] then
+	-- 			PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
+	-- 		elseif psSettings["autoActivate"] and not psSettings["trackSetting"] then
+	-- 			PileSeller:ToggleTracking(true)
+	-- 		end
+	-- 	else
+	-- 		if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
+	-- 			PileSeller:ToggleTracking(false)
+	-- 		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+	-- 			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+	-- 			  text = "Item tracking is active, do you wish to disable it?",
+	-- 			  button1 = "Yes",
+	-- 			  button2 = "No",
+	-- 			  OnAccept = function()
+	-- 				PileSeller:ToggleTracking(false)
+	-- 			  end,
+	-- 			  timeout = 0,
+	-- 			  whileDead = false,
+	-- 			  hideOnEscape = true,
+	-- 			  preferredIndex = 3,
+	-- 			}
+	-- 			StaticPopup_Show ("PS_TOGGLE_TRACKING")
+	-- 		end
+	-- 	end
+	-- elseif not t then
+	-- 	if psSettings["autoDeactivate"] and psSettings["trackSetting"] then
+	-- 			PileSeller:ToggleTracking(false)
+	-- 	elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+	-- 		StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+	-- 			  text = "Item tracking is still active, do you wish to disable it?",
+	-- 			  button1 = "Yes",
+	-- 			  button2 = "No",
+	-- 			  OnAccept = function()
+	-- 				 PileSeller:ToggleTracking(false)
+	-- 			  end,
+	-- 			  timeout = 0,
+	-- 			  whileDead = false,
+	-- 			  hideOnEscape = true,
+	-- 			  preferredIndex = 3,
+	-- 			}
+	-- 			StaticPopup_Show ("PS_TOGGLE_TRACKING")
+	-- 	end
+	-- elseif garrison and psSettings["disableInGarrison"] then
+	-- 	PileSeller:ToggleTracking(false)
+	-- end
 end
 
 function psEvents:RAID_INSTANCE_WELCOME(...)
-	local g = IsInGroup()
-	local type = select(2, GetInstanceInfo())
-	local t = string.match(type, CHAT_MSG_RAID:lower()) or string.match(type, CHAT_MSG_PARTY:lower())
-	if t then
-		if not g then
-			if not psSettings["trackSetting"] and not psSettings["showAlertSetting"] then
-				PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
-			elseif not psSettings["trackSetting"] and psSettings["showAlertSetting"] then
-				PileSeller:ToggleTracking(true)
-			end
-		elseif psSettings["trackSetting"] and psSettings["autoDeactivate"] then
-			PileSeller:ToggleTracking(false)
-		elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
-			StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
-			  text = "Item tracking is active, do you wish to disable it?",
-			  button1 = "Yes",
-			  button2 = "No",
-			  OnAccept = function()
-				 PileSeller:ToggleTracking(false)
-			  end,
-			  timeout = 0,
-			  whileDead = false,
-			  hideOnEscape = true,
-			  preferredIndex = 3,
-			}
-			StaticPopup_Show ("PS_TOGGLE_TRACKING")
-		end
-	end
+	--local g = IsInGroup()
+	--local type = select(2, GetInstanceInfo())
+	--local t = string.match(type, CHAT_MSG_RAID:lower()) or string.match(type, CHAT_MSG_PARTY:lower())
+	--if t then
+	--	if not g then
+	--		if not psSettings["trackSetting"] and not psSettings["showAlertSetting"] then
+	--			PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
+	--		elseif not psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+	--			PileSeller:ToggleTracking(true)
+	--		end
+	--	elseif psSettings["trackSetting"] and psSettings["autoDeactivate"] then
+	--		PileSeller:ToggleTracking(false)
+	--	elseif psSettings["trackSetting"] and psSettings["showAlertSetting"] then
+	--		StaticPopupDialogs["PS_TOGGLE_TRACKING"] = {
+	--		  text = "Item tracking is active, do you wish to disable it?",
+	--		  button1 = "Yes",
+	--		  button2 = "No",
+	--		  OnAccept = function()
+	--			 PileSeller:ToggleTracking(false)
+	--		  end,
+	--		  timeout = 0,
+	--		  whileDead = false,
+	--		  hideOnEscape = true,
+	--		  preferredIndex = 3,
+	--		}
+	--		StaticPopup_Show ("PS_TOGGLE_TRACKING")
+	--	end
+	--end
+	PileSeller:shouldIPopup()
 end
 
 function psEvents:GOSSIP_SHOW(...) canTrack = false; end
@@ -599,15 +741,55 @@ function PileSeller:IsCraftingReagent(id)
 	return false
 end
 
+function PileSeller:IsSpecial(id)
+	local classID, subClassID = select(12, GetItemInfo(id)), select(13, GetItemInfo(id))
+	if classID ~= 0 then return false end
+	if subClassID ~= 8 then return false end
+	return true
+end
+
 function PileSeller:KeepItem(id)
 	local keepTier = psSettings["keepTier"] and PileSeller:IsToken(id)
-	local keepBoE = psSettings["keepBoes"] and PileSeller:IsBoE(id)
+	local keepBoE = psSettings["keepBoes"] and PileSeller:IsBoE(id) and not select(2, PileSeller:IsRecipe(id))
+	if keepBoE and not select(2, PileSeller:IsRecipe(id)) then
+		local itemType = PileSeller:ArmorType(id)
+		if itemType == nil then
+			itemType = PileSeller:WeaponType(id)
+		end
+		keepBoE = psSettings["keepBoes-" .. itemType]
+	end
+	local keepLockboxes = psSettings["keepLockboxes"] and PileSeller:IsLockbox(id)
+	local keepRecipe = psSettings["keepRecipes"] and select(1, PileSeller:IsRecipe(id))
+	if keepRecipe then
+		keepRecipe = psSettings["keepRecipes-"..select(2, PileSeller:IsRecipe(id))]
+	end
+	local keepCompanion = psSettings["keepCompanions"] and PileSeller:IsCompanion(id)
 	--local keepTrasmog = ( psSettings["keepTrasmogs"] and PileSeller:CanTransmog(id) ) and keepBoE
 	--local keepArtifactPower = psSettings["keepArtifactPower"] and PileSeller:IsArtifact(id, true)
 	local keepCraftingReagent = psSettings["keepCraftingReagents"] and PileSeller:IsCraftingReagent(id)
+	local keepSpecial = psSettings["keepSpecials"] and PileSeller:IsSpecial(id)
 	local keepSaved = PileSeller:isSaved(id)
 
-	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower
+	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower or keepLockboxes or keepRecipe or keepCompanion or keepSpecial
+end
+
+function PileSeller:IsRecipe(id)
+	local professions = {
+		[1]  = "leatherworking",
+		[2]  = "tailoring",
+		[3]  = "engineering",
+		[4]  = "blacksmithing",
+		[5]  = "cooking",
+		[6]  = "alchemy",
+		[7]  = "firstaid",
+		[8]  = "enchanting",
+		[9]  = "fishing",
+		[10] = "jewelcrafting",
+		[11] = "inscription"
+	}
+	local classID, subClassID = select(12, GetItemInfo(id)), select(13, GetItemInfo(id))
+	if classID ~= 9 then return false end
+	return true, professions[subClassID]
 end
 
 
