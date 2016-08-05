@@ -757,6 +757,9 @@ function PileSeller:KeepItem(id)
 			itemType = PileSeller:WeaponType(id)
 		end
 		keepBoE = psSettings["keepBoes-" .. itemType]
+		if psSettings["keepBoes-owned"] then
+			keepBoE = PileSeller:IsOwned(id)
+		end
 	end
 	local keepLockboxes = psSettings["keepLockboxes"] and PileSeller:IsLockbox(id)
 	local keepRecipe = psSettings["keepRecipes"] and select(1, PileSeller:IsRecipe(id))

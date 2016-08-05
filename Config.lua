@@ -965,6 +965,7 @@ function CreateConfigSection(UIConfig)
 	UIConfig.tab2Button:SetSize(120, 25)
 	UIConfig.tab2Button:SetPoint("RIGHT", UIConfig.tab1Button, "RIGHT", 120, 0)
 
+
 	UIConfig.tab1Button:SetScript("OnClick", function(self)
 		local other = UIConfig.tab2Button
 		local otherpage = UIConfig.configContainer.configPage2
@@ -1011,6 +1012,7 @@ function CreateConfigSection(UIConfig)
 	UIConfig.configContainer.configPage2:SetPoint("TOPLEFT", UIConfig.tab1Button, "TOPLEFT", 0, -25)
 	---------------------------------
 	UIConfig.tab1Button.Text:SetTextColor(1,1,1)
+	UIConfig.tab2Button.Text:SetTextColor(253/255, 209/255, 22/255)
 	UIConfig.configContainer.configPage1:Show()
 	UIConfig.configContainer.configPage2:Hide()
 
@@ -1098,9 +1100,13 @@ function CreateConfigSection(UIConfig)
 				if psSettings["keepBoes-necks"] == nil then psSettings["keepBoes-necks"] = true end
 				if psSettings["keepBoes-rings"] == nil then psSettings["keepBoes-rings"] = true end
 				if psSettings["keepBoes-trinkets"] == nil then psSettings["keepBoes-trinkets"] = true end
+				if psSettings["keepBoes-owned"] == nil then psSettings["keepBoes-owned"] = false end
 			end
 			if not parent["keepBoes"].dropdown then
 				BoEFilterDropdown_Initialize(parent["keepBoes"])
+			end
+			if not parent["keepBoes"].checkbox then
+				BoEFilterCheckbox_Initialize(parent["keepBoes"])
 			end
 		elseif PileSeller.itemsToKeep[i].name == "keepRecipes" then
 			local name = "keepRecipes"
@@ -1124,10 +1130,34 @@ function CreateConfigSection(UIConfig)
 		x = x + spacing
 		if x >= spacing * 5 then
 			x = 25
-			y = y - spacing
+			y = y - spacing - 25
 		end
 		--y = y - 35
 	end
+end
+
+function BoEFilterCheckbox_Initialize(button)
+	button.checkbox = CreateFrame("CheckButton",button:GetName().."chk", button, "UICheckButtonTemplate")
+	button.checkbox:SetSize(25, 25)
+	button.checkbox:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 0, -25)
+	button.checkbox:SetChecked(psSettings["keepBoes-owned"])
+	button.checkbox.lbl = button.checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	button.checkbox.lbl:SetText("Not owned")
+	button.checkbox.lbl:SetPoint("LEFT", button.checkbox, 25, 0, "RIGHT")
+	button.checkbox.lbl:SetFont("Fonts\\FRIZQT__.TTF", 9)
+
+	if psSettings["keepBoes-owned"] then button.checkbox:Show()
+	else button.checkbox:Hide() end
+
+	button.checkbox:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+		GameTooltip:SetSize(30, 30)
+		GameTooltip:AddLine("Keep only items which you don't own the appearance", 253/255, 209/255, 22/255, true)			
+		GameTooltip:Show()
+	end)
+	button.checkbox:SetScript("OnLeave", function(self)			
+		GameTooltip:Hide()
+	end)
 end
 
 function RecipeFilterDropdown_Initialize(button)
@@ -1435,6 +1465,9 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 			if parent:GetName() ~= "PS_TOGGLE_TRACKING" then
 				if name == "keepBoes" or name == "keepRecipes" then
 					parent[name].dropdown:Show()
+					if parent[name].checkbox then
+						parent[name].checkbox:Show()
+					end
 				end
 			end
 		else
@@ -1443,6 +1476,9 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 			if parent:GetName() ~= "PS_TOGGLE_TRACKING" then
 				if name == "keepBoes" or name == "keepRecipes" then
 					parent[name].dropdown:Hide()
+					if parent[name].checkbox then
+						parent[name].checkbox:Hide()
+					end
 				end
 			end
 		end
