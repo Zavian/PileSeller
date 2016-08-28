@@ -85,38 +85,44 @@ PileSeller.settings = {
         sub = false
     },
     [5] = {
+        name = "hideJunkSetting",
+        default = true,
+        text = "Don't show gray items in the selling list.",
+        sub = false
+    },
+    [6] = {
         name = "sellJunkSetting",
         default = true,
         text = "Auto sell junk.",
         sub = false
     },
-    [6] = {
+    [7] = {
         name = "repairSetting",
         default = false,
         text = "Auto repair gear.",
         sub = false,
         masterOf = "repairGuildSetting"
     },
-    [7] = {
+    [8] = {
         name = "repairGuildSetting",
         default = false,
         text = "Use guild funds.",
         sub = true,
         slaveOf = "repairSetting"
     },
-    [8] = {
+    [9] = {
         name = "showAlertSetting",
         default = true,
         text = "Always message me if tracking is on (|cFF00FF00Recommended|r).",
         sub = false,
     },
-    [9] = {
+    [10] = {
         name = "disableInGarrison",
         default = true,
         text = "Always disable tracking when entering in garrison.",
         sub = false,
     },    
-    [10] = {
+    [11] = {
         name = "hideMinimapButton",
         default = false,
         text = "Hide minimap button. (You can type /pileseller or /ps to access the addon)",
@@ -126,7 +132,7 @@ PileSeller.settings = {
             PileSeller:HideMinimapButton(self:GetChecked())
         end
     },
-    [11] = {
+    [12] = {
         name = "speedTweaker",
         default = false,
         text = "Tweak the speed while selling the items.",
@@ -142,7 +148,6 @@ PileSeller.settings = {
         end
     }
 }
-
 PileSeller.itemsToKeep = {
     [1] = {
         name = "keepTier",
@@ -155,7 +160,7 @@ PileSeller.itemsToKeep = {
         name = "keepBoes",
         default = false,
         title = "Keep BoE",
-        tooltip = "Keep all the Bind on Equip items specified on the dropdown box below\n(checked = keep)\n|cFF00FF00Recipes are not in this category, use the recipe section|r.",
+        tooltip = "Keep all the Bind on Equip items specified on the dropdown box above\n(checked = keep)\n|cFF00FF00Recipes are not in this category, use the recipe section|r.",
         icon =  "Ability_Priest_Evangelism"
     }, 
     [3] = {
@@ -176,7 +181,7 @@ PileSeller.itemsToKeep = {
         name = "keepRecipes",
         default = false,
         title = "Keep all the recipes",
-        tooltip = "Keep all the recipes from various professions specified in the dropdown box below\n(checked = keep)",
+        tooltip = "Keep all the recipes from various professions specified in the dropdown box above\n(checked = keep)",
         icon = "inv_scroll_05"
     },
     [6] = {
@@ -187,6 +192,20 @@ PileSeller.itemsToKeep = {
         icon = "INV_MISC_PETMOONKINTA"        
     },
     [7] = {
+        name = "keepItemLevel",
+        default = false,
+        title = "Keep items above item level",
+        tooltip = "Keep all the items above the item level specified in the textbox.\n(value included. ex: 600 is all items with item level >= 600)",
+        icon = "Achievement_General_Classact"
+    },
+    [8] = {
+        name = "keepItemQuality",
+        default = true,
+        title = "Keep items of a certain quality",
+        tooltip = "Keep all the items of the specified quality in the dropdown box above\n(checked = keep)",
+        icon = "Achievement_Garrison_Alliance_PVE"
+    },
+    [9] = {
         name = "keepSpecials",
         default = true,
         title = "Keep all special items",

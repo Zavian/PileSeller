@@ -767,13 +767,33 @@ function PileSeller:KeepItem(id)
 		keepRecipe = psSettings["keepRecipes-"..select(2, PileSeller:IsRecipe(id))]
 	end
 	local keepCompanion = psSettings["keepCompanions"] and PileSeller:IsCompanion(id)
-	--local keepTrasmog = ( psSettings["keepTrasmogs"] and PileSeller:CanTransmog(id) ) and keepBoE
-	--local keepArtifactPower = psSettings["keepArtifactPower"] and PileSeller:IsArtifact(id, true)
+	local keepItemLevel = psSettings["keepItemLevel"] and PileSeller:IsWantedItemLevel(id)
+	local keepItemQuality = psSettings["keepItemQuality"] and PileSeller:IsWantedItemQuality(id)
 	local keepCraftingReagent = psSettings["keepCraftingReagents"] and PileSeller:IsCraftingReagent(id)
 	local keepSpecial = psSettings["keepSpecials"] and PileSeller:IsSpecial(id)
 	local keepSaved = PileSeller:isSaved(id)
 
-	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower or keepLockboxes or keepRecipe or keepCompanion or keepSpecial
+	return keepTier or keepBoE or keepCraftingReagent or keepSaved or keepArtifactPower or keepLockboxes or keepRecipe or keepCompanion or keepSpecial or keepItemLevel or keepItemQuality
+end
+
+function PileSeller:IsWantedItemQuality(id)
+	local qualities = {
+		[1] = "common",
+		[2] = "uncommon",
+		[3] = "rare",
+		[4] = "epic",
+		[5] = "legendary"
+	}
+	local quality = select(3, GetItemInfo(id))
+	if quality >= 1 and quality <= 5 then
+		return psSettings["keepItemQuality-"..qualities[quality]]
+	else return false end
+end
+
+function PileSeller:IsWantedItemLevel(id)
+	local value = psSettings["keepItemLevelValue"]
+	local itemlevel = select(4, GetItemInfo(id))
+	return itemlevel >= value
 end
 
 function PileSeller:IsRecipe(id)

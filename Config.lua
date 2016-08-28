@@ -13,70 +13,72 @@ end
 
 
 function PileSeller:CreateCunstomStaticPopup(text)
-	local popup = CreateFrame("Frame", "PS_TOGGLE_TRACKING", UIParent)
-	popup:SetFrameStrata("DIALOG")
-	popup:SetSize(320, 72)
-	popup.text = popup:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	popup.text:SetText(text)
-	popup.text:SetPoint("TOP", popup, "TOP", 0, -15)
-	local displayedFrames = StaticPopup_DisplayedFrames
-	if not StaticPopup_DisplayedFrames[1] then
-		popup:SetPoint("TOP", UIParent, "TOP", 0, -135)
-	else 
-		popup:SetPoint("TOP", StaticPopup_DisplayedFrames[1], "BOTTOM")
-	end
-	tinsert(StaticPopup_DisplayedFrames, popup)
-	popup:Show()
+	if not _G["PS_TOGGLE_TRACKING"] then
+		local popup = CreateFrame("Frame", "PS_TOGGLE_TRACKING", UIParent)
+		popup:SetFrameStrata("DIALOG")
+		popup:SetSize(320, 72)
+		popup.text = popup:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		popup.text:SetText(text)
+		popup.text:SetPoint("TOP", popup, "TOP", 0, -15)
+		local displayedFrames = StaticPopup_DisplayedFrames
+		if not StaticPopup_DisplayedFrames[1] then
+			popup:SetPoint("TOP", UIParent, "TOP", 0, -135)
+		else 
+			popup:SetPoint("TOP", StaticPopup_DisplayedFrames[1], "BOTTOM")
+		end
+		tinsert(StaticPopup_DisplayedFrames, popup)
+		popup:Show()
 
-	local backdrop = {
-		bgFile = [[Interface\DialogFrame\UI-DialogBox-Background]],  
-		edgeFile = [[Interface\DialogFrame\UI-DialogBox-Border]],
-		tile = true,
-		tileSize = 32,
-		edgeSize = 32,
-		insets = {
-			left = 11,
-			right = 12,
-			top = 12,
-			bottom = 11
+		local backdrop = {
+			bgFile = [[Interface\DialogFrame\UI-DialogBox-Background]],  
+			edgeFile = [[Interface\DialogFrame\UI-DialogBox-Border]],
+			tile = true,
+			tileSize = 32,
+			edgeSize = 32,
+			insets = {
+				left = 11,
+				right = 12,
+				top = 12,
+				bottom = 11
+			}
 		}
-	}
-	popup:SetBackdrop(backdrop)
-	local Y, X = 45, 25
-	local lines = 1
-	for i = 1, PileSeller:tablelength(PileSeller.itemsToKeep) do
+		popup:SetBackdrop(backdrop)
+		local Y, X = 45, 25
+		local lines = 1
+		for i = 1, PileSeller:tablelength(PileSeller.itemsToKeep) do
 		PileSeller:CreateCheckIcon(PileSeller.itemsToKeep[i], popup, -Y, X, 35)
-		X = X + 40
-		if X > 305 then
-			Y = Y + 40
-			X = 25
-			lines = lines + 1
+			X = X + 40
+			if X >= 305 then
+				Y = Y + 40
+				X = 25 + ( 40 * 2)
+				lines = lines + 1
+			end
 		end
-	end
-	local height = 50 * lines + 80
-	popup:SetHeight(height)
+		local height = 50 * lines + 80
+		popup:SetHeight(height)
 
-	popup.button1 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
-	popup.button1:SetPoint("BOTTOM", popup, "BOTTOM", -70, 15)
+		popup.button1 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
+		popup.button1:SetPoint("BOTTOM", popup, "BOTTOM", -70, 15)
 
-	popup.button2 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
-	popup.button2:SetPoint("BOTTOM", popup, "BOTTOM", 70, 15)
+		popup.button2 = CreateFrame("Button", nil, popup, "StaticPopupButtonTemplate")
+		popup.button2:SetPoint("BOTTOM", popup, "BOTTOM", 70, 15)
 
-	popup.button1:SetText("Yes")
-	popup.button2:SetText("No")
+		popup.button1:SetText("Yes")
+		popup.button2:SetText("No")
 
-	popup.button1:SetScript("OnClick", function()
-		PileSeller:ToggleTracking(true, popup)
-		popup:Hide()
-	end)
-	popup.button2:SetScript("OnClick", function() popup:Hide() end)
+		popup.button1:SetScript("OnClick", function()
+			PileSeller:ToggleTracking(true, popup)
+			popup:Hide()
+		end)
+		popup.button2:SetScript("OnClick", function() popup:Hide() end)
 
-	popup:SetScript("OnHide", function() 
-		local index = GetStaticPopup("PS_TOGGLE_TRACKING")
-		if index then
-			tremove(StaticPopup_DisplayedFrames, index)
-		end
-	end)
+		popup:SetScript("OnHide", function() 
+			local index = GetStaticPopup("PS_TOGGLE_TRACKING")
+			if index then
+				tremove(StaticPopup_DisplayedFrames, index)
+			end
+		end)
+	else _G["PS_TOGGLE_TRACKING"]:Show() end
 end
 --PileSeller:CreateCunstomStaticPopup(PileSeller.wishToTrack)
 
@@ -90,15 +92,21 @@ function PileSeller:PopulateList(list, items, width, literal, drops)
 	if not width then width = 258 end
 	PileSeller:ClearAllButtons(list)
 	PileSeller:debugprint(list:GetName() .. " populating")
+	local item = 1
 	if not literal then
 		for i = 1, #items do
-			PileSeller:CreateScrollButton(list, items[i], i, width, 21, drops)
+			local shouldHide = select(3, GetItemInfo(items[i])) == 0 and psSettings["hideJunkSetting"]
+			if not shouldHide then
+				PileSeller:CreateScrollButton(list, items[i], item, width, 21, drops)
+				item = item + 1
+			end
 		end
 	else
 		for i = 1, #items do
 			PileSeller:CreateScrollButton(list, -1, i, width, 21, items[i], drops)
 		end
 	end
+	item = 1
 end
 
 
@@ -994,6 +1002,10 @@ function CreateConfigSection(UIConfig)
 		if page["keepRecipes"].dropdown then
 			page["keepRecipes"].dropdown.frame:Hide()
 		end
+
+		if page["keepItemQuality"].dropdown then
+			page["keepItemQuality"].dropdown.frame:Hide()
+		end
 	end)
 	---------------------------------
 
@@ -1126,6 +1138,25 @@ function CreateConfigSection(UIConfig)
 			if not parent[name].dropdown then
 				RecipeFilterDropdown_Initialize(parent[name])
 			end
+		elseif PileSeller.itemsToKeep[i].name == "keepItemLevel" then
+			if psSettings["keepItemLevel"] ~= nil then
+				if psSettings["keepItemLevelValue"] == nil then psSettings["keepItemLevelValue"] = 1 end
+			end
+			if not parent["keepItemLevel"].slider then
+				KeepItemLevelSlider_Inizialize(parent["keepItemLevel"])
+			end
+		elseif PileSeller.itemsToKeep[i].name == "keepItemQuality" then
+			local name = "keepItemQuality"
+			if psSettings[name] ~= nil then
+				if psSettings[name.."-common"] == nil then psSettings[name.."-common"] = false end
+				if psSettings[name.."-uncommon"] == nil then psSettings[name.."-uncommon"] = false end
+				if psSettings[name.."-rare"] == nil then psSettings[name.."-rare"] = false end
+				if psSettings[name.."-epic"] == nil then psSettings[name.."-epic"] = false end
+				if psSettings[name.."-legendary"] == nil then psSettings[name.."-legendary"] = true end
+			end
+			if not parent[name].dropdown then
+				KeepItemQualityDropdown_Initialize(parent[name])
+			end
 		end
 		x = x + spacing
 		if x >= spacing * 5 then
@@ -1134,6 +1165,144 @@ function CreateConfigSection(UIConfig)
 		end
 		--y = y - 35
 	end
+end
+
+
+
+function KeepItemLevelSlider_Inizialize(button)
+	button.slider = CreateFrame("Slider", "PileSeller_ConfigFrame_KeepItemLevel_Slider", button, "OptionsSliderTemplate")
+	button.slider:SetPoint("TOP", button, 0, 0)
+	button.slider:SetOrientation("HORIZONTAL")
+	button.slider:SetMinMaxValues(1, 999)
+	button.slider:SetValue(psSettings["keepItemLevelValue"])
+	button.slider:SetValueStep(1)
+	button.slider:SetObeyStepOnDrag(true)
+	button.slider:SetSize(button:GetWidth(), 20)
+	button.slider.value = CreateFrame("EditBox", nil, button.slider)
+	button.slider.value:SetSize(button:GetWidth(), 21)
+	button.slider.value:SetPoint("TOP", button.slider, "TOP", 0, -21)
+	button.slider.value:SetNumeric(true)
+	button.slider.value:SetMaxLetters(3)
+	button.slider.value:SetAutoFocus(false)
+	button.slider.value:SetText(psSettings["keepItemLevelValue"])
+
+	button.slider.value:SetScript("OnEscapePressed", function(self)
+		self:ClearFocus()
+	end)
+	button.slider.value:SetScript("OnTextChanged", function(self)
+		local number = tonumber(self:GetText())
+		if number == nil then
+			number = 1
+		end
+		psSettings["keepItemLevelValue"] = number
+		self:GetParent():SetValue(number)
+	end)
+	
+	button.slider:SetScript("OnValueChanged", function(self, value)
+		self.value:SetText(value)
+		psSettings["keepItemLevelValue"] = value
+	end)
+	
+	-- Setting the EditBox properties
+	button.slider.value:SetFontObject("GameFontHighlight")	-- Its font
+	button.slider.value:SetTextInsets(5, 0, 0, 0)			-- Some insets for the text
+	button.slider.value:SetBackdrop({						-- The border and backdrop
+		bgFile = [[Interface\Buttons\WHITE8X8]],
+		tile = false,
+		edgeFile = [[Interface\Buttons\WHITE8X8]], 
+		edgeSize = 1, 
+		insets = {
+			left = 1,
+			right = 1,
+			top = 1,
+			bottom = 1
+		  }
+	})
+	button.slider.value:SetBackdropColor(.27,.27,.27, 1)
+	button.slider.value:SetBackdropBorderColor(0, 0, 0)
+
+	button.slider.High:Hide()
+    button.slider.Low:Hide()
+
+    if button.tex:IsDesaturated() then
+    	button.slider:Hide()
+    	button.slider.value:Hide()
+    end
+
+end
+
+function KeepItemQualityDropdown_Initialize(button)
+	button.dropdown = CreateFrame("BUTTON", button:GetName() .. "DropDown", button, "GameMenuButtonTemplate")
+	button.dropdown:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+
+	button.dropdown.frame = CreateFrame("BUTTON", button.dropdown:GetName() .. "Frame", button, "UIDropDownMenuTemplate")
+	button.dropdown.frame:SetPoint("RIGHT", button.dropdown)
+	button.dropdown:SetSize(button:GetWidth(), 21)
+	UIDropDownMenu_Initialize(button.dropdown.frame, function(button)
+		local info = UIDropDownMenu_CreateInfo()
+		info.maxWidth = button:GetWidth() - 20
+		info.text = CHECK_ALL
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = true
+		info.isTitle = false
+		info.func = function()
+			psSettings["keepItemQuality-common"] = true
+			psSettings["keepItemQuality-uncommon"] = true
+			psSettings["keepItemQuality-rare"] = true
+			psSettings["keepItemQuality-epic"] = true
+			psSettings["keepItemQuality-legendary"] = true
+		end
+		UIDropDownMenu_AddButton(info, 1)
+		info.keepShownOnClick = true	
+		info.text = "|cFFffffffCommon|r"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepItemQuality-common"] = not psSettings["keepItemQuality-common"] end
+		info.checked = psSettings["keepItemQuality-common"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "|cFF1eff00Uncommon|r"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepItemQuality-uncommon"] = not psSettings["keepItemQuality-uncommon"] end
+		info.checked = psSettings["keepItemQuality-uncommon"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "|cFF0070ddRare|r"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepItemQuality-rare"] = not psSettings["keepItemQuality-rare"] end
+		info.checked = psSettings["keepItemQuality-rare"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "|cFFa335eeEpic|r"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepItemQuality-epic"] = not psSettings["keepItemQuality-epic"] end
+		info.checked = psSettings["keepItemQuality-epic"]
+		UIDropDownMenu_AddButton(info, 1)
+
+		info.text = "|cFFff8000Legendary|r"
+		info.hasArrow = false
+		info.isNotRadio = true
+		info.notCheckable = false
+		info.func = function() psSettings["keepItemQuality-legendary"] = not psSettings["keepItemQuality-legendary"] end
+		info.checked = psSettings["keepItemQuality-legendary"]
+		UIDropDownMenu_AddButton(info, 1)
+	end, "MENU")
+	button.dropdown:SetText("Qualities")
+
+	button.dropdown:SetScript("OnClick", function(self)
+		ToggleDropDownMenu(1, nil, self.frame, self, 0, 0)
+	end)
+	if button.tex:IsDesaturated() then
+		button.dropdown:Hide()
+	else button.dropdown:Show() end
 end
 
 function BoEFilterCheckbox_Initialize(button)
@@ -1437,7 +1606,7 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 	local active = false
 	if psSettings[name] ~= nil then
 		active = psSettings[name]
-	end
+	else active = default end
 	local icon = "Interface\\ICONS\\" .. button.icon
 	if not size then size = 75 end
 
@@ -1468,6 +1637,11 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 					if parent[name].checkbox then
 						parent[name].checkbox:Show()
 					end
+				elseif name == "keepItemLevel" then
+					parent[name].slider:Show()
+					parent[name].slider.value:Show()
+				elseif name == "keepItemQuality" then
+					parent[name].dropdown:Show()
 				end
 			end
 		else
@@ -1479,6 +1653,11 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 					if parent[name].checkbox then
 						parent[name].checkbox:Hide()
 					end
+				elseif name == "keepItemLevel" then
+					parent[name].slider:Hide()
+					parent[name].slider.value:Hide()
+				elseif name == "keepItemQuality" then
+					parent[name].dropdown:Hide()
 				end
 			end
 		end
