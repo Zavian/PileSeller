@@ -404,6 +404,7 @@ function HideAllFromConfig(ui)
 		local children = { ui:GetChildren() }
 		for i=1, #children do
 			local name = children[i]:GetName()
+			PileSeller:debugprint(name)
 			local kid = 
 				name == "PileSeller_ConfigFrame_CloseButton" or 
 				name == "PileSeller_ConfigFrame_SwitchButton" or 
@@ -669,6 +670,11 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 	f:SetSize(width, height)
 	f:SetClampedToScreen(true)
 	f:EnableMouseWheel(true)
+	_G[name .. "ScrollBar"]:SetParent(parent)
+	_G[name .. "ScrollBar"]:Show()
+	f:SetClipsChildren(true) -- 7.1 thingie
+	
+
 	if not noBackground then
 		local tex = f:CreateTexture(nil, "BACKGROUND")
 		tex:SetTexture([[Interface\Buttons\WHITE8X8]])
@@ -724,25 +730,28 @@ function CreateSavedSection(UIConfig)
 		UIConfig.savedScroll:Show()
 		UIConfig.savedScroll:SetScrollChild(UIConfig.savedScroll.content)
 		UIConfig.savedScroll:EnableMouseWheel(true) 
+		UIConfig.savedScroll.ScrollBar:Show();
 	end
 	PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved, 258)
 
 	if not UIConfig.savedScroll.lblTitle then
-		UIConfig.savedScroll.lblTitle = UIConfig.savedScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		UIConfig.savedScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.savedScroll.lblTitle:SetText("Saved items list")
-		UIConfig.savedScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.savedScroll, UIConfig.savedScroll.lblTitle:GetWidth() + 30, 0)		
+		UIConfig.savedScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.savedScroll, UIConfig.savedScroll.lblTitle:GetWidth() + 30, 0)
+		UIConfig.savedScroll.lblTitle:SetParent(UIConfig)		
 	else UIConfig.savedScroll.lblTitle:Show() end
 
 	if not UIConfig.savedScroll.lblTitle.lblDesc then
-		UIConfig.savedScroll.lblTitle.lblDesc = UIConfig.savedScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		UIConfig.savedScroll.lblTitle.lblDesc = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		UIConfig.savedScroll.lblTitle.lblDesc:SetText("Items saved: " .. #psItemsSaved .. "|nItems found: " .. PileSeller:tablelength(psItemsSavedFound))
 		UIConfig.savedScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.savedScroll.lblTitle, 0, -UIConfig.savedScroll.lblTitle:GetHeight() - 10)
 		UIConfig.savedScroll.lblTitle.lblDesc:SetJustifyH("LEFT")
+		UIConfig.savedScroll.lblTitle.lblDesc:SetParent(UIConfig)
 	else UIConfig.savedScroll.lblTitle.lblDesc:Show() end
 
 	-- Creating the add item bar
 	if not UIConfig.txtAddSavedItem then 
-		UIConfig.txtAddSavedItem = CreateFrame("EditBox", nil, UIConfig.savedScroll)
+		UIConfig.txtAddSavedItem = CreateFrame("EditBox", nil, UIConfig)
 		UIConfig.txtAddSavedItem:SetSize(260, 21)
 		UIConfig.txtAddSavedItem:SetPoint("LEFT", UIConfig.savedScroll, "LEFT", 0, -70)
 		UIConfig.txtAddSavedItem:SetAutoFocus(false)
@@ -833,21 +842,23 @@ function CreateToSellSection(UIConfig)
 		UIConfig.toSellScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_ToSellScroll", 260, 100)
 		UIConfig.toSellScroll:SetPoint("BOTTOM", UIConfig.savedScroll, 0, -UIConfig.savedScroll:GetHeight() - 10)
 		UIConfig.toSellScroll:SetParent(UIConfig)
-	else UIConfig.toSellScroll:Show(); UIConfig.toSellScroll:EnableMouseWheel(true) end
+	else UIConfig.toSellScroll:Show(); UIConfig.toSellScroll:EnableMouseWheel(true); UIConfig.toSellScroll.ScrollBar:Show(); end
 	PileSeller:PopulateList(UIConfig.toSellScroll.content, psItems, 258)
 
 	if not UIConfig.toSellScroll.lblTitle then
-		UIConfig.toSellScroll.lblTitle = UIConfig.toSellScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		UIConfig.toSellScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.toSellScroll.lblTitle:SetText("To sell items list")
-		UIConfig.toSellScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.toSellScroll, UIConfig.toSellScroll.lblTitle:GetWidth() + 30, 0)		
+		UIConfig.toSellScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.toSellScroll, UIConfig.toSellScroll.lblTitle:GetWidth() + 30, 0)	
+		UIConfig.toSellScroll.lblTitle:SetParent(UIConfig)	
 	else UIConfig.toSellScroll.lblTitle:Show() end
 
 	if not UIConfig.toSellScroll.lblTitle.lblDesc then
-		UIConfig.toSellScroll.lblTitle.lblDesc = UIConfig.savedScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		UIConfig.toSellScroll.lblTitle.lblDesc = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		local p = GetSell()
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetText("Items to sell: " .. #psItems .. "|nProfit: " .. p)
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.toSellScroll.lblTitle, 0, -UIConfig.toSellScroll.lblTitle:GetHeight() - 10)	
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetJustifyH("LEFT")
+		UIConfig.toSellScroll.lblTitle.lblDesc:SetParent(UIConfig)
 	else UIConfig.toSellScroll.lblTitle.lblDesc:Show() end
 
 end
@@ -857,12 +868,12 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.ignoredScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_IgnoredScroll", 260, 55)
 		UIConfig.ignoredScroll:SetPoint("BOTTOM", UIConfig.toSellScroll, 0, -65)
 		UIConfig.ignoredScroll:SetParent(UIConfig)		
-	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true) end
+	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true); UIConfig.ignoredScroll.ScrollBar:Show(); end
 	PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 
 	-- Creating the add item bar
 	if not UIConfig.txtAddIgnoreZone then 
-		UIConfig.txtAddIgnoreZone = CreateFrame("EditBox", nil, UIConfig.ignoredScroll)
+		UIConfig.txtAddIgnoreZone = CreateFrame("EditBox", nil, UIConfig)
 		UIConfig.txtAddIgnoreZone:SetSize(260, 21)
 		UIConfig.txtAddIgnoreZone:SetPoint("BOTTOM", UIConfig.ignoredScroll, 0, -20)
 		UIConfig.txtAddIgnoreZone:SetAutoFocus(false)
@@ -919,17 +930,19 @@ function CreateIgnoreZone(UIConfig)
 	else UIConfig.ignoredScroll.lblHelp:Show() end
 
 	if not UIConfig.ignoredScroll.lblTitle then
-		UIConfig.ignoredScroll.lblTitle = UIConfig.ignoredScroll:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		UIConfig.ignoredScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.ignoredScroll.lblTitle:SetText("Ignored zone list")
-		UIConfig.ignoredScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.ignoredScroll, UIConfig.ignoredScroll.lblTitle:GetWidth() + 30, 0)		
+		UIConfig.ignoredScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.ignoredScroll, UIConfig.ignoredScroll.lblTitle:GetWidth() + 30, 0)	
+		UIConfig.ignoredScroll.lblTitle:SetParent(UIConfig)	
 	else UIConfig.ignoredScroll.lblTitle:Show() end
 
 	if not UIConfig.ignoredScroll.lblTitle.lblDesc then
-		UIConfig.ignoredScroll.lblTitle.lblDesc = UIConfig.ignoredScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		UIConfig.ignoredScroll.lblTitle.lblDesc = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetText("You are currently in:|n|cFF" .. PileSeller.color .. GetZoneText() .. "|r")
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetWidth(125)
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetJustifyH("LEFT")
-		UIConfig.ignoredScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.ignoredScroll.lblTitle, 0, -UIConfig.ignoredScroll.lblTitle:GetHeight() - 10)		
+		UIConfig.ignoredScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.ignoredScroll.lblTitle, 0, -UIConfig.ignoredScroll.lblTitle:GetHeight() - 10)	
+		UIConfig.ignoredScroll.lblTitle.lblDesc:SetParent(UIConfig)	
 	else UIConfig.ignoredScroll.lblTitle.lblDesc:Show() end
 
 
@@ -962,6 +975,13 @@ end
 
 function CreateConfigSection(UIConfig)
 	HideAllFromConfig(UIConfig)
+	UIConfig.savedScroll.lblTitle:Hide()
+	UIConfig.savedScroll.lblTitle.lblDesc:Hide()
+	UIConfig.toSellScroll.lblTitle:Hide()
+	UIConfig.toSellScroll.lblTitle.lblDesc:Hide()
+	UIConfig.ignoredScroll.lblTitle:Hide()
+	UIConfig.ignoredScroll.lblTitle.lblDesc:Hide()
+
 
 	----------- Creating the buttons
 	UIConfig.tab1Button = CreateFrame("Button", "PileSeller_ConfigFrame_Tab1Button", UIConfig, "GameMenuButtonTemplate")
