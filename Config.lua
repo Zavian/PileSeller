@@ -2,10 +2,10 @@ local PileSeller = _G.PileSeller
 local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:15:15|t"
 
 
-local lastClicked 
+local lastClicked
 
 function GetStaticPopup(name)
-	for i = 1, #StaticPopup_DisplayedFrames do 
+	for i = 1, #StaticPopup_DisplayedFrames do
 		if StaticPopup_DisplayedFrames[i]:GetName() == name then return i end
 	end
 	return nil
@@ -23,14 +23,14 @@ function PileSeller:CreateCunstomStaticPopup(text)
 		local displayedFrames = StaticPopup_DisplayedFrames
 		if not StaticPopup_DisplayedFrames[1] then
 			popup:SetPoint("TOP", UIParent, "TOP", 0, -135)
-		else 
+		else
 			popup:SetPoint("TOP", StaticPopup_DisplayedFrames[1], "BOTTOM")
 		end
 		tinsert(StaticPopup_DisplayedFrames, popup)
 		popup:Show()
 
 		local backdrop = {
-			bgFile = [[Interface\DialogFrame\UI-DialogBox-Background]],  
+			bgFile = [[Interface\DialogFrame\UI-DialogBox-Background]],
 			edgeFile = [[Interface\DialogFrame\UI-DialogBox-Border]],
 			tile = true,
 			tileSize = 32,
@@ -72,7 +72,7 @@ function PileSeller:CreateCunstomStaticPopup(text)
 		end)
 		popup.button2:SetScript("OnClick", function() popup:Hide() end)
 
-		popup:SetScript("OnHide", function() 
+		popup:SetScript("OnHide", function()
 			local index = GetStaticPopup("PS_TOGGLE_TRACKING")
 			if index then
 				tremove(StaticPopup_DisplayedFrames, index)
@@ -185,7 +185,7 @@ function PileSeller:CreateScrollButton(parent, id, progress, width, height, zone
 					ChatEdit_InsertLink(l)
 				elseif IsControlKeyDown() then
 					DressUpItemLink(l)
-				end				
+				end
 			end)
 		else
 			parent[name]:RegisterForClicks("AnyDown")
@@ -205,7 +205,7 @@ function PileSeller:CreateScrollButton(parent, id, progress, width, height, zone
 		end
 	elseif id == -1 then
 		text = zoneName
-		if parent:GetName() ~= "PileSeller_ConfigFrame_ItemInfos_MiniDialog_ScrollFrameContent" then			
+		if parent:GetName() ~= "PileSeller_ConfigFrame_ItemInfos_MiniDialog_ScrollFrameContent" then
 			parent[name]:SetScript("OnClick", function()
 				PileSeller.UIConfig.txtAddIgnoreZone:SetText(text)
 			end)
@@ -227,7 +227,7 @@ function PileSeller:CreateScrollButton(parent, id, progress, width, height, zone
 	parent[name]:SetHighlightTexture("Interface\\AddOns\\PileSeller\\media\\highlight", "ADD")
 
 	parent[name]:SetBackdrop({
-		bgFile = [[Interface\Buttons\WHITE8X8]], 
+		bgFile = [[Interface\Buttons\WHITE8X8]],
 	})
 	if progress % 2 == 0 or progress == 0 then parent[name]:SetBackdropColor(.15, .15, .15,1)
 	else parent[name]:SetBackdropColor(.27, .27, .27,1) end
@@ -239,7 +239,7 @@ end
 
 --- Function to get the profit estimated from the items
 --- input: none
---- output: 
+--- output:
 	---formatted string (0g 0s 0c)
 function GetSell()
 	local rtn = 0
@@ -247,11 +247,14 @@ function GetSell()
 	for i = 0, NUM_BAG_SLOTS do
 		for j = 1, GetContainerNumSlots(i) do
 			item = select(7, GetContainerItemInfo(i, j))
+			--print(item)
 			if item then
 				local count = select(2, GetContainerItemInfo(i, j))
-				if PileSeller:IsToSell(item) then
-					local cost = select(11, GetItemInfo(id))
-					rtn = rtn + (cost * count)
+				if PileSeller:getID(item) then
+					if PileSeller:IsToSell(item) then
+						local cost = select(11, GetItemInfo(id))
+						rtn = rtn + (cost * count)
+					end
 				end
 			end
 		end
@@ -309,7 +312,7 @@ function PileSeller:ShowConfig(args)
 			PileSeller.UIConfig.switch:SetText(t)
 		end
 		)
-		
+
 		-- Tutorial Button
 		PileSeller.UIConfig.tutorial = CreateFrame("Button", "PileSeller_ConfigFrame_TutorialButton", PileSeller.UIConfig)
 		PileSeller.UIConfig.tutorial:SetSize(75, 75)
@@ -329,8 +332,8 @@ function PileSeller:ShowConfig(args)
 				end
 			end
 		)
-		
-		
+
+
 		-- Toggle Tracking Button
 		PileSeller.UIConfig.toggleTracking = CreateFrame("Button", "PileSeller_ConfigFrame_ToggleTracking", PileSeller.UIConfig, "GameMenuButtonTemplate")
 		PileSeller.UIConfig.toggleTracking:SetPoint("TOP", PileSeller.UIConfig, "TOP", 0, 0)
@@ -343,8 +346,8 @@ function PileSeller:ShowConfig(args)
 		end
 		)
 		PileSeller.UIConfig.toggleTracking:SetBackdrop({
-			edgeFile = [[Interface\Buttons\WHITE8X8]], 
-			edgeSize = 3, 
+			edgeFile = [[Interface\Buttons\WHITE8X8]],
+			edgeSize = 3,
 			insets = {
 					left = 1,
 					right = 1,
@@ -358,8 +361,8 @@ function PileSeller:ShowConfig(args)
 		PileSeller.UIConfig.close:SetPoint("TOPRIGHT", PileSeller.UIConfig)
 		PileSeller.UIConfig.close:SetSize(34, 34)
 		PileSeller.UIConfig.close:SetScript("OnClick", HideConfig)
-	else 
-		PileSeller.UIConfig:Show() 
+	else
+		PileSeller.UIConfig:Show()
 		PlaySound("igCharacterInfoOpen");
 		PileSeller.UIConfig.switch:SetText(switchTo)
 	end
@@ -368,7 +371,7 @@ function PileSeller:ShowConfig(args)
 		PileSeller:CreateItemsSection(PileSeller.UIConfig)
 		PileSeller.UIConfig.tutorial:Show()
 	elseif args == "config" then
-		PileSeller:debugprint("entered showconfig config")		
+		PileSeller:debugprint("entered showconfig config")
 		CreateConfigSection(PileSeller.UIConfig)
 	end
 end
@@ -389,7 +392,7 @@ end
 	--- ui = UIConfig
 --- output: none
 function HideAllFromConfig(ui)
-	
+
 	-- By doing this I can find any other item in the frame
 	-- Now I just hide all the things that I don't need
 	if ui:GetName():find("StaticPopup") then
@@ -405,14 +408,14 @@ function HideAllFromConfig(ui)
 		for i=1, #children do
 			local name = children[i]:GetName()
 			PileSeller:debugprint(name)
-			local kid = 
-				name == "PileSeller_ConfigFrame_CloseButton" or 
-				name == "PileSeller_ConfigFrame_SwitchButton" or 
-				name == "PileSeller_ConfigFrame_ToggleTracking" or 
+			local kid =
+				name == "PileSeller_ConfigFrame_CloseButton" or
+				name == "PileSeller_ConfigFrame_SwitchButton" or
+				name == "PileSeller_ConfigFrame_ToggleTracking" or
 				name == "PileSeller_ConfigFrame_TutorialButton" or
-				(children[i]:GetName() == "PileSeller_ConfigFrame_ItemInfos" and not children[i]:IsVisible()) 
-			if not kid and not children[i].donthide then 
-				children[i]:Hide() 
+				(children[i]:GetName() == "PileSeller_ConfigFrame_ItemInfos" and not children[i]:IsVisible())
+			if not kid and not children[i].donthide then
+				children[i]:Hide()
 			end
 		end
 	end
@@ -534,7 +537,7 @@ end
 function SetMiniDialogInfo(parent, itemLink, thereAreBosses)
 	PileSeller:ClearAllButtons(parent.miniDialog.scroller.content)
 	local sources = PileSeller:GetItemSources(itemLink)
-	if parent.miniDialog:IsShown() then return end 
+	if parent.miniDialog:IsShown() then return end
 	parent.miniDialog:Show()
 	if not sources or not sources[1] then parent.miniDialog.scroller.text:SetText("This item is not trasmogrificable, hence I don't know the source (sorry)."); parent.miniDialog.scroller.text:Show();
 	else
@@ -552,10 +555,10 @@ function SetMiniDialogInfo(parent, itemLink, thereAreBosses)
 		end
 
 
-		--if sources[2] then 
-		--	parent.miniDialog.showBossSource:Show() 
-		--	parent.miniDialog.showBossSource:SetScript("OnClick", function() 
-		--		PileSeller:PrintTable(C_TransmogCollection.GetAppearanceSourceDrops(sources[3]))	
+		--if sources[2] then
+		--	parent.miniDialog.showBossSource:Show()
+		--	parent.miniDialog.showBossSource:SetScript("OnClick", function()
+		--		PileSeller:PrintTable(C_TransmogCollection.GetAppearanceSourceDrops(sources[3]))
 		--	end)
 		--else parent.miniDialog.showBossSource:Hide() end
 		PileSeller:PopulateList(parent.miniDialog.scroller.content, text, 172, true, sources)
@@ -595,7 +598,7 @@ function PileSeller:SetItemInfo(parent, item)
 		DressUpItemLink(l)
 	end
 	)
-	
+
 	parent.removeFromList:SetScript("OnClick", function()
 		local tableToGet = {}
 		if lastClicked:GetName() == "PileSeller_ConfigFrame_SavedScrollContent" then tableToGet = psItemsSaved
@@ -606,7 +609,7 @@ function PileSeller:SetItemInfo(parent, item)
 
 	end
 	)
-	if lastClicked then 
+	if lastClicked then
 		if lastClicked:GetName() then
 			if lastClicked:GetName() == "PileSeller_ConfigFrame_ToSellScrollContent" then parent.toggleAlert:Hide()
 			elseif lastClicked:GetName() == "PileSeller_ConfigFrame_SavedScrollContent" then
@@ -636,7 +639,7 @@ function PileSeller:SetItemInfo(parent, item)
 	parent.itemValue:SetText(t)
 
 
-	
+
 	if not WardrobeCollectionFrameModel_GetSourceTooltipInfo then
 		parent.itemSource:SetText("Load Sources")
 		parent.itemSource:SetScript("OnClick", function()
@@ -672,8 +675,13 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 	f:EnableMouseWheel(true)
 	_G[name .. "ScrollBar"]:SetParent(parent)
 	_G[name .. "ScrollBar"]:Show()
+	_G[name .. "ScrollBar"]:SetScript("OnValueChanged",
+		function(self, value)
+			f:SetVerticalScroll(value)
+		end
+	)
 	f:SetClipsChildren(true) -- 7.1 thingie
-	
+
 
 	if not noBackground then
 		local tex = f:CreateTexture(nil, "BACKGROUND")
@@ -683,8 +691,8 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 	end
 	if not noBorder then
 		f:SetBackdrop({
-			edgeFile = [[Interface\Buttons\WHITE8X8]], 
-			edgeSize = 1, 
+			edgeFile = [[Interface\Buttons\WHITE8X8]],
+			edgeSize = 1,
 			insets = {
 				left = 1,
 				right = 1,
@@ -699,7 +707,7 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 	f.content:SetSize(width, height)
 	f:SetScrollChild(f.content)
 
-	f:SetScript("OnMouseWheel", function(self, delta) 
+	f:SetScript("OnMouseWheel", function(self, delta)
 		local vertical = f:GetVerticalScroll()
 		local max = f:GetVerticalScrollRange()
 		--local step = ((max / 21) * 5) -- how much i should move. 21 = height of the button. 5 = speed
@@ -709,7 +717,7 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 			f:SetVerticalScroll(vertical + move)
 		elseif vertical + move > max then
 			f:SetVerticalScroll(max)
-		elseif vertical + move < 0 then 
+		elseif vertical + move < 0 then
 			f:SetVerticalScroll(0)
 		end
 		_G[name .. "ScrollBar"]:SetValue(f:GetVerticalScroll()) -- feelsbadman
@@ -718,18 +726,18 @@ function PileSeller:CreateScroll(parent, name, width, height, noBorder, noBackgr
 	return f
 end
 
-function CreateSavedSection(UIConfig)	
+function CreateSavedSection(UIConfig)
 	PileSeller:debugprint("entered createitemssection saved")
 	--[[SAVED SECTION]]--
 	if not UIConfig.savedScroll then
 		UIConfig.savedScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_SavedScroll", 260, 120)
 		UIConfig.savedScroll:SetPoint("TOPLEFT", UIConfig, 20, -35)
 		UIConfig.savedScroll:SetParent(UIConfig)
-	else 
+	else
 		PileSeller:debugprint("entered createitemssection saved else")
 		UIConfig.savedScroll:Show()
 		UIConfig.savedScroll:SetScrollChild(UIConfig.savedScroll.content)
-		UIConfig.savedScroll:EnableMouseWheel(true) 
+		UIConfig.savedScroll:EnableMouseWheel(true)
 		UIConfig.savedScroll.ScrollBar:Show();
 	end
 	PileSeller:PopulateList(UIConfig.savedScroll.content, psItemsSaved, 258)
@@ -738,7 +746,7 @@ function CreateSavedSection(UIConfig)
 		UIConfig.savedScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.savedScroll.lblTitle:SetText("Saved items list")
 		UIConfig.savedScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.savedScroll, UIConfig.savedScroll.lblTitle:GetWidth() + 30, 0)
-		UIConfig.savedScroll.lblTitle:SetParent(UIConfig)		
+		UIConfig.savedScroll.lblTitle:SetParent(UIConfig)
 	else UIConfig.savedScroll.lblTitle:Show() end
 
 	if not UIConfig.savedScroll.lblTitle.lblDesc then
@@ -750,7 +758,7 @@ function CreateSavedSection(UIConfig)
 	else UIConfig.savedScroll.lblTitle.lblDesc:Show() end
 
 	-- Creating the add item bar
-	if not UIConfig.txtAddSavedItem then 
+	if not UIConfig.txtAddSavedItem then
 		UIConfig.txtAddSavedItem = CreateFrame("EditBox", nil, UIConfig)
 		UIConfig.txtAddSavedItem:SetSize(260, 21)
 		UIConfig.txtAddSavedItem:SetPoint("LEFT", UIConfig.savedScroll, "LEFT", 0, -70)
@@ -759,15 +767,15 @@ function CreateSavedSection(UIConfig)
 			UIConfig.txtAddSavedItem:ClearFocus()
 		end
 		)
-		
+
 		-- Setting the EditBox properties
 		UIConfig.txtAddSavedItem:SetFontObject("GameFontHighlight")	-- Its font
 		UIConfig.txtAddSavedItem:SetTextInsets(5, 0, 0, 0)			-- Some insets for the text
 		UIConfig.txtAddSavedItem:SetBackdrop({						-- The border and backdrop
 		bgFile = [[Interface\Buttons\WHITE8X8]],
 		tile = false,
-		edgeFile = [[Interface\Buttons\WHITE8X8]], 
-		edgeSize = 1, 
+		edgeFile = [[Interface\Buttons\WHITE8X8]],
+		edgeSize = 1,
 		insets = {
 				left = 1,
 				right = 1,
@@ -786,7 +794,7 @@ function CreateSavedSection(UIConfig)
 					local l = string.len(t)
 					for i=1, l do
 						s = t:sub(i,i)
-						if s < '0' or s > '9' then 
+						if s < '0' or s > '9' then
 							UIConfig.txtAddSavedItem:SetText("-- ERROR --")
 							return
 						end
@@ -802,7 +810,7 @@ function CreateSavedSection(UIConfig)
 
 
 	-- Creating the add item button
-	if not UIConfig.btnAddSavedItem then 
+	if not UIConfig.btnAddSavedItem then
 		UIConfig.btnAddSavedItem = CreateFrame("Button", nil, UIConfig.txtAddSavedItem, "GameMenuButtonTemplate")
 		UIConfig.btnAddSavedItem:SetSize(26, 26)
 		UIConfig.btnAddSavedItem:SetPoint("RIGHT", UIConfig.txtAddSavedItem, "RIGHT", 26, -1)
@@ -816,7 +824,7 @@ function CreateSavedSection(UIConfig)
 					local l = string.len(t)
 					for i=1, l do
 						s = t:sub(i,i)
-						if s < '0' or s > '9' then 
+						if s < '0' or s > '9' then
 							UIConfig.txtAddSavedItem:SetText("-- ERROR --")
 							return
 						end
@@ -848,15 +856,15 @@ function CreateToSellSection(UIConfig)
 	if not UIConfig.toSellScroll.lblTitle then
 		UIConfig.toSellScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.toSellScroll.lblTitle:SetText("To sell items list")
-		UIConfig.toSellScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.toSellScroll, UIConfig.toSellScroll.lblTitle:GetWidth() + 30, 0)	
-		UIConfig.toSellScroll.lblTitle:SetParent(UIConfig)	
+		UIConfig.toSellScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.toSellScroll, UIConfig.toSellScroll.lblTitle:GetWidth() + 30, 0)
+		UIConfig.toSellScroll.lblTitle:SetParent(UIConfig)
 	else UIConfig.toSellScroll.lblTitle:Show() end
 
 	if not UIConfig.toSellScroll.lblTitle.lblDesc then
 		UIConfig.toSellScroll.lblTitle.lblDesc = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		local p = GetSell()
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetText("Items to sell: " .. #psItems .. "|nProfit: " .. p)
-		UIConfig.toSellScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.toSellScroll.lblTitle, 0, -UIConfig.toSellScroll.lblTitle:GetHeight() - 10)	
+		UIConfig.toSellScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.toSellScroll.lblTitle, 0, -UIConfig.toSellScroll.lblTitle:GetHeight() - 10)
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetJustifyH("LEFT")
 		UIConfig.toSellScroll.lblTitle.lblDesc:SetParent(UIConfig)
 	else UIConfig.toSellScroll.lblTitle.lblDesc:Show() end
@@ -867,12 +875,12 @@ function CreateIgnoreZone(UIConfig)
 	if not UIConfig.ignoredScroll then
 		UIConfig.ignoredScroll = PileSeller:CreateScroll(UIConfig, "PileSeller_ConfigFrame_IgnoredScroll", 260, 55)
 		UIConfig.ignoredScroll:SetPoint("BOTTOM", UIConfig.toSellScroll, 0, -65)
-		UIConfig.ignoredScroll:SetParent(UIConfig)		
+		UIConfig.ignoredScroll:SetParent(UIConfig)
 	else UIConfig.ignoredScroll:Show(); UIConfig.ignoredScroll:EnableMouseWheel(true); UIConfig.ignoredScroll.ScrollBar:Show(); end
 	PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 
 	-- Creating the add item bar
-	if not UIConfig.txtAddIgnoreZone then 
+	if not UIConfig.txtAddIgnoreZone then
 		UIConfig.txtAddIgnoreZone = CreateFrame("EditBox", nil, UIConfig)
 		UIConfig.txtAddIgnoreZone:SetSize(260, 21)
 		UIConfig.txtAddIgnoreZone:SetPoint("BOTTOM", UIConfig.ignoredScroll, 0, -20)
@@ -881,15 +889,15 @@ function CreateIgnoreZone(UIConfig)
 			UIConfig.txtAddIgnoreZone:ClearFocus()
 		end
 		)
-		
+
 		-- Setting the EditBox properties
 		UIConfig.txtAddIgnoreZone:SetFontObject("GameFontHighlight")	-- Its font
 		UIConfig.txtAddIgnoreZone:SetTextInsets(5, 0, 0, 0)			-- Some insets for the text
 		UIConfig.txtAddIgnoreZone:SetBackdrop({						-- The border and backdrop
 		bgFile = [[Interface\Buttons\WHITE8X8]],
 		tile = false,
-		edgeFile = [[Interface\Buttons\WHITE8X8]], 
-		edgeSize = 1, 
+		edgeFile = [[Interface\Buttons\WHITE8X8]],
+		edgeSize = 1,
 		insets = {
 				left = 1,
 				right = 1,
@@ -910,7 +918,7 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.txtAddIgnoreZone:SetScript("OnEnterPressed", function()
 			local s = UIConfig.btnAddIgnoreZone:GetText() == "+"
 			local t = UIConfig.txtAddIgnoreZone:GetText()
-			if s then				
+			if s then
 				tinsert(psIgnoredZones, t)
 				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			else
@@ -926,14 +934,14 @@ function CreateIgnoreZone(UIConfig)
 	if not UIConfig.ignoredScroll.lblHelp then
 		UIConfig.ignoredScroll.lblHelp = UIConfig.ignoredScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		UIConfig.ignoredScroll.lblHelp:SetText("use the above box to add and remove zones")
-		UIConfig.ignoredScroll.lblHelp:SetPoint("BOTTOM", UIConfig.txtAddIgnoreZone, 0, -UIConfig.txtAddIgnoreZone:GetHeight() + 2)		
+		UIConfig.ignoredScroll.lblHelp:SetPoint("BOTTOM", UIConfig.txtAddIgnoreZone, 0, -UIConfig.txtAddIgnoreZone:GetHeight() + 2)
 	else UIConfig.ignoredScroll.lblHelp:Show() end
 
 	if not UIConfig.ignoredScroll.lblTitle then
 		UIConfig.ignoredScroll.lblTitle = UIConfig:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		UIConfig.ignoredScroll.lblTitle:SetText("Ignored zone list")
-		UIConfig.ignoredScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.ignoredScroll, UIConfig.ignoredScroll.lblTitle:GetWidth() + 30, 0)	
-		UIConfig.ignoredScroll.lblTitle:SetParent(UIConfig)	
+		UIConfig.ignoredScroll.lblTitle:SetPoint("TOPRIGHT", UIConfig.ignoredScroll, UIConfig.ignoredScroll.lblTitle:GetWidth() + 30, 0)
+		UIConfig.ignoredScroll.lblTitle:SetParent(UIConfig)
 	else UIConfig.ignoredScroll.lblTitle:Show() end
 
 	if not UIConfig.ignoredScroll.lblTitle.lblDesc then
@@ -941,13 +949,13 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetText("You are currently in:|n|cFF" .. PileSeller.color .. GetZoneText() .. "|r")
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetWidth(125)
 		UIConfig.ignoredScroll.lblTitle.lblDesc:SetJustifyH("LEFT")
-		UIConfig.ignoredScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.ignoredScroll.lblTitle, 0, -UIConfig.ignoredScroll.lblTitle:GetHeight() - 10)	
-		UIConfig.ignoredScroll.lblTitle.lblDesc:SetParent(UIConfig)	
+		UIConfig.ignoredScroll.lblTitle.lblDesc:SetPoint("LEFT", UIConfig.ignoredScroll.lblTitle, 0, -UIConfig.ignoredScroll.lblTitle:GetHeight() - 10)
+		UIConfig.ignoredScroll.lblTitle.lblDesc:SetParent(UIConfig)
 	else UIConfig.ignoredScroll.lblTitle.lblDesc:Show() end
 
 
 	-- Creating the add item button
-	if not UIConfig.btnAddIgnoreZone then 
+	if not UIConfig.btnAddIgnoreZone then
 		UIConfig.btnAddIgnoreZone = CreateFrame("Button", nil, UIConfig.txtAddIgnoreZone, "GameMenuButtonTemplate")
 		UIConfig.btnAddIgnoreZone:SetSize(26, 26)
 		UIConfig.btnAddIgnoreZone:SetPoint("RIGHT", UIConfig.txtAddIgnoreZone, "RIGHT", 26, -1)
@@ -955,7 +963,7 @@ function CreateIgnoreZone(UIConfig)
 		UIConfig.btnAddIgnoreZone:SetScript("OnClick", function()
 			local s = UIConfig.btnAddIgnoreZone:GetText() == "+"
 			local t = UIConfig.txtAddIgnoreZone:GetText()
-			if s then				
+			if s then
 				tinsert(psIgnoredZones, t)
 				PileSeller:PopulateList(UIConfig.ignoredScroll.content, psIgnoredZones, 258, true)
 			else
@@ -975,12 +983,14 @@ end
 
 function CreateConfigSection(UIConfig)
 	HideAllFromConfig(UIConfig)
-	UIConfig.savedScroll.lblTitle:Hide()
-	UIConfig.savedScroll.lblTitle.lblDesc:Hide()
-	UIConfig.toSellScroll.lblTitle:Hide()
-	UIConfig.toSellScroll.lblTitle.lblDesc:Hide()
-	UIConfig.ignoredScroll.lblTitle:Hide()
-	UIConfig.ignoredScroll.lblTitle.lblDesc:Hide()
+	if UIConfig.savedScroll and UIConfig.ignoredScroll then
+		UIConfig.savedScroll.lblTitle:Hide()
+		UIConfig.savedScroll.lblTitle.lblDesc:Hide()
+		UIConfig.toSellScroll.lblTitle:Hide()
+		UIConfig.toSellScroll.lblTitle.lblDesc:Hide()
+		UIConfig.ignoredScroll.lblTitle:Hide()
+		UIConfig.ignoredScroll.lblTitle.lblDesc:Hide()
+	end
 
 
 	----------- Creating the buttons
@@ -997,7 +1007,7 @@ function CreateConfigSection(UIConfig)
 	UIConfig.tab1Button:SetScript("OnClick", function(self)
 		local other = UIConfig.tab2Button
 		local otherpage = UIConfig.configContainer.configPage2
-		local page = UIConfig.configContainer.configPage1 
+		local page = UIConfig.configContainer.configPage1
 
 		self.Text:SetTextColor(1,1,1)
 		other.Text:SetTextColor(253/255, 209/255, 22/255)
@@ -1058,7 +1068,7 @@ function CreateConfigSection(UIConfig)
 		if PileSeller.settings[i].name == "speedTweaker" then
 			if not psSettings["speedTweakerValue"] then
 				psSettings["speedTweakerValue"] = 1.5
-			end 
+			end
 			parent.speedTweaker.questionButton = CreateFrame("Button", "PileSeller_ConfigFrame_ConfigScroller_SpeedTweaker_Tutorial", parent.speedTweaker)
 			parent.speedTweaker.questionButton:SetNormalTexture([[Interface\BUTTONS\UI-MicroButton-Help-Up]])
 			parent.speedTweaker.questionButton:SetPushedTexture([[Interface\BUTTONS\UI-MicroButton-Help-Up]])
@@ -1075,7 +1085,7 @@ function CreateConfigSection(UIConfig)
 			parent.speedTweaker.questionButton:SetScript("OnLeave", function()
 				GameTooltip:Hide()
 			end)
-			
+
 			parent.speedTweaker.questionButton:SetPoint("RIGHT", parent.speedTweaker.lbl, -50, 10)
 			parent.speedTweaker.questionButton:SetSize(30, 50)
 
@@ -1103,7 +1113,7 @@ function CreateConfigSection(UIConfig)
 
             parent.speedTweakerSlider.High:Hide()
             parent.speedTweakerSlider.Low:Hide()
-			
+
 			parent.speedTweakerSlider:SetScript("OnValueChanged", function(self, value)
 				self.value:SetText(value)
 				psSettings["speedTweakerValue"] = value
@@ -1217,20 +1227,20 @@ function KeepItemLevelSlider_Inizialize(button)
 		psSettings["keepItemLevelValue"] = number
 		self:GetParent():SetValue(number)
 	end)
-	
+
 	button.slider:SetScript("OnValueChanged", function(self, value)
 		self.value:SetText(value)
 		psSettings["keepItemLevelValue"] = value
 	end)
-	
+
 	-- Setting the EditBox properties
 	button.slider.value:SetFontObject("GameFontHighlight")	-- Its font
 	button.slider.value:SetTextInsets(5, 0, 0, 0)			-- Some insets for the text
 	button.slider.value:SetBackdrop({						-- The border and backdrop
 		bgFile = [[Interface\Buttons\WHITE8X8]],
 		tile = false,
-		edgeFile = [[Interface\Buttons\WHITE8X8]], 
-		edgeSize = 1, 
+		edgeFile = [[Interface\Buttons\WHITE8X8]],
+		edgeSize = 1,
 		insets = {
 			left = 1,
 			right = 1,
@@ -1274,7 +1284,7 @@ function KeepItemQualityDropdown_Initialize(button)
 			psSettings["keepItemQuality-legendary"] = true
 		end
 		UIDropDownMenu_AddButton(info, 1)
-		info.keepShownOnClick = true	
+		info.keepShownOnClick = true
 		info.text = "|cFFffffffCommon|r"
 		info.hasArrow = false
 		info.isNotRadio = true
@@ -1341,10 +1351,10 @@ function BoEFilterCheckbox_Initialize(button)
 	button.checkbox:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
 		GameTooltip:SetSize(30, 30)
-		GameTooltip:AddLine("Keep only items which you don't own the appearance", 253/255, 209/255, 22/255, true)			
+		GameTooltip:AddLine("Keep only items which you don't own the appearance", 253/255, 209/255, 22/255, true)
 		GameTooltip:Show()
 	end)
-	button.checkbox:SetScript("OnLeave", function(self)			
+	button.checkbox:SetScript("OnLeave", function(self)
 		GameTooltip:Hide()
 	end)
 end
@@ -1376,7 +1386,7 @@ function RecipeFilterDropdown_Initialize(button)
 			psSettings["keepRecipes-cooking"] = true
 		end
 		UIDropDownMenu_AddButton(info, 1)
-		info.keepShownOnClick = true	
+		info.keepShownOnClick = true
 		info.text = "Alchemy"
 		info.hasArrow = false
 		info.isNotRadio = true
@@ -1503,7 +1513,7 @@ function BoEFilterDropdown_Initialize(button)
 			psSettings["keepBoes-trinkets"] = true
 		end
 		UIDropDownMenu_AddButton(info, 1)
-		info.keepShownOnClick = true	
+		info.keepShownOnClick = true
 		info.text = "Cloth"
 		info.hasArrow = false
 		info.isNotRadio = true
@@ -1568,7 +1578,7 @@ function BoEFilterDropdown_Initialize(button)
 		info.checked = nil
 		info.notClickable = true
 		UIDropDownMenu_AddButton(info, 1)
-		
+
 		info = UIDropDownMenu_CreateInfo()
 		info.maxWidth = button:GetWidth() - 20
 		info.keepShownOnClick = true
@@ -1643,7 +1653,7 @@ function PileSeller:CreateCheckIcon(button, parent, y, x, size)
 		GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
 		GameTooltip:SetSize(30, 30)
 		GameTooltip:AddLine("|cFFFFFFFF" .. title .. "|r")
-		GameTooltip:AddLine(tooltip, 253/255, 209/255, 22/255, true)			
+		GameTooltip:AddLine(tooltip, 253/255, 209/255, 22/255, true)
 		GameTooltip:Show()
 	end)
 	parent[name]:SetScript("OnClick", function(self)
@@ -1703,7 +1713,7 @@ function PileSeller:CreateCheckButton(check, parent, y)
 	else parent[name]:SetScript("OnClick", check.f) end
 	parent[name]:SetPoint("TOPLEFT", parent, sub, y)
 	local chkWidth = parent[name]:GetWidth()
-	
+
 	parent[name].lbl = parent[name]:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	parent[name].lbl:SetPoint("LEFT", parent[name], chkWidth, 0, "RIGHT")
 	parent[name].lbl:SetWordWrap(true)
@@ -1713,7 +1723,7 @@ function PileSeller:CreateCheckButton(check, parent, y)
 	parent[name].lbl:SetFont("Fonts\\FRIZQT__.TTF", 14)
 	parent[name].lbl:SetTextColor(253/255, 209/255, 22/255,1)
 	if check.slaveOf then ToggleCheckAndText(parent, name, psSettings[check.slaveOf]) end
-	
+
 	parent[name]:SetParent(parent)
 end
 
@@ -1743,9 +1753,9 @@ function PileSeller_MinimapButton_DraggingFrame_OnUpdate()
 end
 
 function PileSeller_MinimapButton_OnClick()
-	if PileSeller.UIConfig then 
-		if PileSeller.UIConfig:IsShown() then 
-			HideConfig() 
+	if PileSeller.UIConfig then
+		if PileSeller.UIConfig:IsShown() then
+			HideConfig()
 		else PileSeller:ShowConfig("items")end
 	else PileSeller:ShowConfig("items") end
 end
@@ -1755,8 +1765,8 @@ function PileSeller_MinimapButton_OnEnter(self)
 	local s = "|cFFFFFFFFPileSeller|r|n"
 	if psSettings["trackSetting"] then
 		s = s .. "|cFF00FF00Tracking|r|nGoing to sell " .. #psItems .. " item(s)"
-	else 
-		s = s .. "|cFFFF0000Not tracking|r" 
+	else
+		s = s .. "|cFFFF0000Not tracking|r"
 	end
 	GameTooltip:SetText(s)
 end
@@ -1782,7 +1792,7 @@ function collectionJournalToggled(closeNow)
 					id = string.gsub(id, "|cFF" .. PileSeller.color .. "Item ID:|r ", "")
 					--print(id)
 					id = tonumber(id)
-					PileSeller.UIConfig.itemInfos.item.itemSource:SetScript("OnClick", function() 
+					PileSeller.UIConfig.itemInfos.item.itemSource:SetScript("OnClick", function()
 						if not PileSeller.UIConfig.itemInfos.miniDialog then CreateMiniDialog(PileSeller.UIConfig.itemInfos) end
 						SetMiniDialogInfo(PileSeller.UIConfig.itemInfos, select(2, GetItemInfo(id)))
 					end)
